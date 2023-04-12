@@ -1,0 +1,58 @@
+> Entering new LLMCheckerChain chain...
+
+
+> Entering new SequentialChain chain...
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Are camels bigger than dogs?
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+
+No, camels are not typically bigger than dogs. The average size of a camel is between 5 and 6 feet tall, while the average size of a dog is between 1 and 3 feet tall.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• Assumed that the average size of a camel is between 5 and 6 feet tall
+• Assumed that the average size of a dog is between 1 and 3 feet tall
+• Assumed that camels are typically not bigger than dogs
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• Assumed that the average size of a camel is between 5 and 6 feet tall - True
+• Assumed that the average size of a dog is between 1 and 3 feet tall - True
+• Assumed that camels are typically not bigger than dogs - False. Camels can be much larger than dogs, with some breeds of camels reaching heights of up to 7 feet tall.
+
+Question: In light of the above assertions and checks, how would you answer the question 'Are camels bigger than dogs?'?
+
+Answer:
+
+> Finished chain.
+
+> Finished chain.
+
+> Finished chain.
+' Yes, camels are typically bigger than dogs.'

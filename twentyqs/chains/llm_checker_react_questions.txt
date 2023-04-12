@@ -1,0 +1,341 @@
+> Entering new LLMCheckerChain chain...
+
+> Entering new SequentialChain chain...
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+What is the elevation range for the area that the eastern sector of the Colorado orogeny extends into?
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+The elevation range for the eastern sector of the Colorado orogeny extends from approximately 4,000 feet to over 14,000 feet.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• Assumed the eastern sector of the Colorado orogeny is a geographic area
+• Assumed the elevation range is measured in feet
+• Assumed the elevation range is from 4,000 feet to over 14,000 feet
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• Assumed the eastern sector of the Colorado orogeny is a geographic area: True 
+• Assumed the elevation range is measured in feet: True 
+• Assumed the elevation range is from 4,000 feet to over 14,000 feet: False - The elevation range of the eastern sector of the Colorado orogeny is from 4,000 feet to over 10,000 feet.
+
+Question: In light of the above assertions and checks, how would you answer the question 'What is the elevation range for the area that the eastern sector of the Colorado orogeny extends into?'?
+
+Answer:
+
+> Finished chain.
+> Finished chain.
+> Finished chain.
+
+
+> Entering new LLMCheckerChain chain...
+
+> Entering new SequentialChain chain...
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Musician and satirist Allie Goertz wrote a song about the "The Simpsons" character Milhouse, who Matt Groening named after who?
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+
+Matt Groening named Milhouse after his childhood best friend, Richard "Milhouse" Van Houten.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+- Matt Groening had a childhood best friend
+- His best friend's name was Richard "Milhouse" Van Houten
+- Matt Groening named a character in his work after his best friend
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+> Finished chain.
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+1. Matt Groening had a childhood best friend: True
+
+2. His best friend's name was Richard "Milhouse" Van Houten: False - His best friend's name was Richard "Richie" Groening.
+
+3. Matt Groening named a character in his work after his best friend: True
+
+Question: In light of the above assertions and checks, how would you answer the question 'Musician and satirist Allie Goertz wrote a song about the "The Simpsons" character Milhouse, who Matt Groening named after who?'?
+
+Answer:
+
+> Finished chain.
+> Finished chain.
+> Finished chain.
+
+
+> Entering new LLMCheckerChain chain...
+
+
+> Entering new SequentialChain chain...
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Which documentary is about Finnish rock groups, Adam Clayton Powell or The Saimaa Gesture?
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+The Saimaa Gesture is a documentary about Finnish rock groups.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• The documentary is about Finnish rock groups
+• The documentary is called "The Saimaa Gesture"
+• The documentary is about the history and culture of Finnish rock groups
+• The documentary may feature interviews with members of Finnish rock groups
+• The documentary may include live performances from Finnish rock groups
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• The documentary is about Finnish rock groups - True
+• The documentary is called "The Saimaa Gesture" - True
+• The documentary is about the history and culture of Finnish rock groups - True
+• The documentary may feature interviews with members of Finnish rock groups - True
+• The documentary may include live performances from Finnish rock groups - True
+
+Question: In light of the above assertions and checks, how would you answer the question 'Which documentary is about Finnish rock groups, Adam Clayton Powell or The Saimaa Gesture?'?
+
+Answer:
+
+> Finished chain.
+
+> Finished chain.
+
+> Finished chain.
+
+
+> Entering new LLMCheckerChain chain...
+
+
+> Entering new SequentialChain chain...
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+What profession does Nicholas Ray and Elia Kazan have in common?
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+
+Nicholas Ray and Elia Kazan were both film directors.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• Nicholas Ray and Elia Kazan were both alive at the same time 
+• They both worked in the film industry 
+• They both directed films 
+• They both had a significant impact on the film industry
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• Nicholas Ray and Elia Kazan were both alive at the same time: True 
+• They both worked in the film industry: True 
+• They both directed films: True 
+• They both had a significant impact on the film industry: True
+
+Question: In light of the above assertions and checks, how would you answer the question 'What profession does Nicholas Ray and Elia Kazan have in common?'?
+
+Answer:
+
+> Finished chain.
+
+> Finished chain.
+
+> Finished chain.
+
+
+> Entering new LLMCheckerChain chain...
+
+
+> Entering new SequentialChain chain...
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Which magazine was started first Arthur’s Magazine or First for Women?
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+Arthur’s Magazine was started first in 1885, while First for Women was not launched until 1998.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• Arthur’s Magazine was started in 1885
+• First for Women was launched in 1998
+• Arthur’s Magazine was started before First for Women
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• Arthur’s Magazine was started in 1885 - True
+• First for Women was launched in 1998 - True
+• Arthur’s Magazine was started before First for Women - False (First for Women was launched in 1998, while Arthur’s Magazine was started in 1885)
+
+Question: In light of the above assertions and checks, how would you answer the question 'Which magazine was started first Arthur’s Magazine or First for Women?'?
+
+Answer:
+
+> Finished chain.
+
+> Finished chain.
+
+> Finished chain.
+
+
+> Entering new LLMCheckerChain chain...
+
+
+> Entering new SequentialChain chain...
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Were Pavel Urysohn and Leonid Levin known for the same type of work?
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a statement:
+No, Pavel Urysohn and Leonid Levin were not known for the same type of work. Pavel Urysohn was a mathematician who worked on topology and set theory, while Leonid Levin was a computer scientist who worked on algorithmic complexity theory and the theory of computation.
+Make a bullet point list of the assumptions you made when producing the above statement.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+Here is a bullet point list of assertions:
+
+• Pavel Urysohn and Leonid Levin were not known for the same type of work 
+• Pavel Urysohn was a mathematician 
+• Pavel Urysohn worked on topology and set theory 
+• Leonid Levin was a computer scientist 
+• Leonid Levin worked on algorithmic complexity theory and the theory of computation
+For each assertion, determine whether it is true or false. If it is false, explain why.
+
+
+
+> Finished chain.
+
+
+> Entering new LLMChain chain...
+Prompt after formatting:
+
+• Pavel Urysohn and Leonid Levin were not known for the same type of work: True 
+• Pavel Urysohn was a mathematician: True 
+• Pavel Urysohn worked on topology and set theory: True 
+• Leonid Levin was a computer scientist: True 
+• Leonid Levin worked on algorithmic complexity theory and the theory of computation: True
+
+Question: In light of the above assertions and checks, how would you answer the question 'Were Pavel Urysohn and Leonid Levin known for the same type of work?'?
+
+Answer:
+
+> Finished chain.
+
+> Finished chain.
+
+> Finished chain.
+[' The elevation range for the area that the eastern sector of the Colorado orogeny extends into is from 4,000 feet to over 10,000 feet.',
+ ' Matt Groening named the character Milhouse after his childhood best friend, Richard "Richie" Groening.',
+ ' The Saimaa Gesture.',
+ ' Nicholas Ray and Elia Kazan have the profession of filmmaking in common.',
+ " Arthur's Magazine was started first, in 1885, while First for Women was launched in 1998.",
+ ' No, Pavel Urysohn and Leonid Levin were not known for the same type of work. Pavel Urysohn was a mathematician who worked on topology and set theory, while Leonid Levin was a computer scientist who worked on algorithmic complexity theory and the theory of computation.']
+​

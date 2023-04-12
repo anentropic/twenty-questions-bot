@@ -1,0 +1,22 @@
+Secret subject: Mona Lisa painting
+Question about the subject: is it mineral?
+Answer: Yes
+✅ fixed
+
+Secret subject: The Beatles band
+Question about the subject: is it John Lennon?
+Yes.
+
+Secret subject: The Beatles band
+Question about the subject: the Beatles?
+No.
+
+Secret subject: The Beatles band
+Question about the subject: is it the Beatles?
+Yes.
+👍 correct
+
+Secret subject: the Eiffel Tower
+Question about the subject: is it an important landmark in Paris?
+No.
+👍 correct

@@ -1,0 +1,18 @@
+question: is it mineral?
+(False, 'Because it requires more information to provide a definitive answer.')
+
+question: is it green?
+(False, 'Because it lacks context and specificity.')
+
+Subject: The Beatles band
+Is this a yes/no question: is it mineral?
+(False, 'Because it does not have a yes/no answer and is not related to the subject.')
+
+
+Subject: Coca-Cola brand
+Is this a yes/no question: the coca cola brand?
+(False, 'The question is incomplete and unclear.')
+
+Subject: Mona Lisa painting
+Question: are there many of them or only one?
+(True, 'The answer is either yes or no, as there is only one Mona Lisa painting.')
