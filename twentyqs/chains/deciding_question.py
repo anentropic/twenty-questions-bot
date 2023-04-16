@@ -20,10 +20,11 @@ The oracle answered: Yes
 Does the player now know the identity of the secret subject? (Answer only yes or no)
 """
 
+ParsedT = bool
 
-class IsDecidingQuestionOutputParser(BaseOutputParser):
-    def parse(self, text: str) -> bool:
-        logger.debug(f"IsDecidingQuestionOutputParser: {text}")
+class IsDecidingQuestionOutputParser(BaseOutputParser[ParsedT]):
+    def parse(self, text: str) -> ParsedT:
+        logger.debug("IsDecidingQuestionOutputParser.parse: %s", text)
         return text.strip().lower().startswith("yes")
 
 

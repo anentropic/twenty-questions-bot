@@ -1,7 +1,10 @@
+import logging
 import re
 
 from langchain import PromptTemplate, LLMChain
 from langchain.schema import BaseOutputParser
+
+logger = logging.getLogger(__name__)
 
 
 template = """You are an AI about to play a game of "20 Questions" with a human.
@@ -42,8 +45,11 @@ PLACE_CATEGORIES = [
 splitter_re = re.compile(r"^\d+\.\s*(.+)$", re.MULTILINE)
 
 
-class NumberedListParser(BaseOutputParser):
-    def parse(self, text: str) -> dict:
+ParsedT = list[str]
+
+class NumberedListParser(BaseOutputParser[ParsedT]):
+    def parse(self, text: str) -> ParsedT:
+        logger.debug("NumberedListParser.parse: %s", text)
         return splitter_re.findall(text)
 
 

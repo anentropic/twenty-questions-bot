@@ -1,8 +1,12 @@
+import logging
 import re
-from enum import Enum
 
 from langchain import PromptTemplate, LLMChain
 from langchain.schema import BaseOutputParser
+
+from twentyqs.types import Answer
+
+logger = logging.getLogger(__name__)
 
 # possibly there should be an "unanswerable" response too
 prefix = """You are a chatbot playing a question answering game with a human.
@@ -57,25 +61,29 @@ Answer: I don't know""",
 
 splitter_re = re.compile(r"(Thought|Answer)\:\s*(?P<value>.*)")
 
-
-class Answer(Enum):
-    YES = "Yes"
-    NO = "No"
-    SOMETIMES = "Sometimes"
-    DONT_KNOW = "I don't know"
+AnswerT = Answer | str | None
+ParsedT = tuple[AnswerT, str | None]
 
 
-class AnswerQuestionOutputParser(BaseOutputParser):
-    def parse(self, text: str) -> tuple[Answer | str | None, str]:
+def _get_matched_value(unparsed: str) -> str | None:
+    match = splitter_re.match(unparsed)
+    if match:
+        return match.groupdict()['value'] or None
+    return None
+
+
+class AnswerQuestionOutputParser(BaseOutputParser[ParsedT]):
+    def parse(self, text: str) -> ParsedT:
+        logger.debug("AnswerQuestionOutputParser.parse: %s", text)
         thought, answer = text.rsplit("\n", 2)
-        thought = splitter_re.match(thought).groupdict()['value'] or None
-        answer = splitter_re.match(answer).groupdict()['value'] or None
-        if answer:
+        thought_ = _get_matched_value(thought)
+        answer_: AnswerT = _get_matched_value(answer)
+        if answer_:
             for a in Answer:
-                if answer.startswith(a.value):
-                    answer = a
+                if answer_.startswith(a.value):
+                    answer_ = a
                     break
-        return answer, thought
+        return answer_, thought_
 
 
 class AnswerQuestionChain(LLMChain):

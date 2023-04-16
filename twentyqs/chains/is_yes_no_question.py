@@ -1,7 +1,10 @@
+import logging
 import re
 
 from langchain import PromptTemplate, LLMChain
 from langchain.schema import BaseOutputParser
+
+logger = logging.getLogger(__name__)
 
 # TODO:
 # in some cases we may need an extra chain to rephrase the user's
@@ -64,14 +67,24 @@ Reason: """,
 
 splitter_re = re.compile(r"(Reply|Reason)\:\s*(?P<value>.*)")
 
+ParsedT = tuple[bool, str | None]
 
-class IsYesNoOutputParser(BaseOutputParser):
-    def parse(self, text: str) -> tuple[bool, str]:
+
+def _get_matched_value(unparsed: str) -> str | None:
+    match = splitter_re.match(unparsed)
+    if match:
+        return match.groupdict()['value'] or None
+    return None
+
+
+class IsYesNoOutputParser(BaseOutputParser[ParsedT]):
+    def parse(self, text: str) -> ParsedT:
+        logger.debug("IsYesNoOutputParser.parse: %s", text)
         _, answer, reason = text.rsplit("\n", 2)
-        answer = splitter_re.match(answer).groupdict()['value'] or None
-        reason = splitter_re.match(reason).groupdict()['value'] or None
-        is_yes_no = answer.strip().lower() == "yes"
-        return is_yes_no, reason
+        answer_ = _get_matched_value(answer)
+        reason_ = _get_matched_value(reason)
+        is_yes_no = (answer_ and answer_.strip().lower()) == "yes"
+        return is_yes_no, reason_
 
 
 class IsYesNoQuestionChain(LLMChain):
