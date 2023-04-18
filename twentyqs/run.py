@@ -60,7 +60,7 @@ if __name__ == "__main__":
     controller = GameController(
         username=args.username,
         answerer=answerer,
-        stats_context_mgr=openai_stats_context(),
+        stats_context_factory=openai_stats_context,
     )
     view_model = ViewModel(controller)
     view = view_model.create_view()

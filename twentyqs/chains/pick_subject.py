@@ -7,6 +7,14 @@ from langchain.schema import BaseOutputParser
 logger = logging.getLogger(__name__)
 
 
+# TODO:
+# - one time having "Taj Mahal" as the lone item in the 'already used' list
+#   caused it to pick "The Taj Mahal (already used)" as the subject (the actual
+#   game played fine and it accepted 'Taj Mahal' as the answer though)
+# - more problematic, the 'already used' list tends to get used as examples so
+#   e.g. with SIMPLE_CATEGORY once it has picked one 'place' it will tend to pick
+#   more 'places' after that
+# - ...to be seen whether the themed category prompts totally overcome that
 template = """You are an AI about to play a game of "20 Questions" with a human.
 
 Before we start the game we need to prepare a lists of possible subjects. The human will be asking questions trying to guess the identity of the subject. So the subjects should all be well-known to most people.

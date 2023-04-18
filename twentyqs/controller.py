@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Protocol
+from typing import Protocol, Type
 
 import twentyqs.repository as repo
 from twentyqs.brain import AnswerBot
@@ -27,6 +28,9 @@ class StatsContextManager(Protocol):
 
     def __exit__(self, *args, **kwargs) -> bool | None:
         ...
+
+
+StatsContextManagerFactory = Callable[..., StatsContextManager]
 
 
 @dataclass(frozen=True)
@@ -68,15 +72,21 @@ TurnOutcome = InvalidQuestion | ContinueGame | WonGame | LostGame
 class GameController:
     
     answerer: AnswerBot
-    stats_context_mgr: StatsContextManager
+    stats_context_factory: StatsContextManagerFactory | None
+    _stats_context_mgr: StatsContextManager | None = None
     game_stats_context: StatsContext | None = None
     user: repo.User
     session: repo.GameSession | None = None
 
-    def __init__(self, username: str, answerer: AnswerBot, stats_context_mgr: StatsContextManager):
+    def __init__(
+        self,
+        username: str,
+        answerer: AnswerBot,
+        stats_context_factory: StatsContextManagerFactory | None = None,
+    ):
         self.user = repo.get_or_create_user(username)
         self.answerer = answerer
-        self.stats_context_mgr = stats_context_mgr
+        self.stats_context_factory = stats_context_factory
 
     def start_game(self) -> GameBegun:
         """
@@ -85,7 +95,9 @@ class GameController:
         subject_history = repo.user_subject_history(self.user.username)
         self.answerer.history = subject_history
 
-        self.game_stats_context = self.stats_context_mgr.__enter__()
+        if self.stats_context_factory:
+            self._stats_context_mgr = mgr = self.stats_context_factory()
+            self.game_stats_context = mgr.__enter__()
 
         self.answerer.set_subject()
         self.session = repo.start_game(user=self.user, subject=self.answerer.subject)
@@ -98,11 +110,12 @@ class GameController:
         Finish the current game.
         """
         assert self.session
-        self.stats_context_mgr.__exit__(None, None, None)
-        llm_stats = None
-        if self.game_stats_context:
-            llm_stats = self.game_stats_context.get_stats()
-            logger.info("GameController.finish_game: LLM stats: %s", llm_stats)
+        if self._stats_context_mgr:
+            self._stats_context_mgr.__exit__(None, None, None)
+            llm_stats = None
+            if self.game_stats_context:
+                llm_stats = self.game_stats_context.get_stats()
+                logger.info("GameController.finish_game: LLM stats: %s", llm_stats)
         repo.finish_game(self.session.get_id(), user_won, llm_stats)
 
     def log_turn(self, turn: repo.Turn, summary: TurnSummaryT) -> None:

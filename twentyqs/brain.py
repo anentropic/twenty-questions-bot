@@ -103,6 +103,7 @@ class AnswerBot:
     def set_subject(self) -> None:
         self._subject = self.pick_subject()
         self.history.append(self._subject)
+        self._q_count = 0
 
     def pick_subject(self) -> str:
         """
@@ -203,6 +204,8 @@ class AnswerBot:
             is_deciding_q=is_deciding_question,
         )
 
+        # TODO: maybe this should just return ANSWERED and the
+        # q_count logic can move to the controller
         if is_deciding_question:
             result = TurnResult.WIN
         elif self._q_count == self.max_questions:

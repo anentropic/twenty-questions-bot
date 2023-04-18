@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 TextboxT = dict | str
+ButtonT = dict | str
 
 # history is a list of [user_message, bot_message]
 # (can't use tuple as has to be mutable)
@@ -107,15 +108,16 @@ class ViewModel:
                 "that has happened after September 2021...)",
             ],
         ]
-        return gr.update(interactive=True), history
+        return gr.update(interactive=True, visible=True), history
 
     @with_lock
-    def after_input(self, history: HistoryT) -> tuple[TextboxT, ChatbotT]:
+    def after_question_input(self, history: HistoryT) -> tuple[TextboxT, ChatbotT, ButtonT]:
         """Process a game turn."""
         question = get_user_msg(history)
         assert question is not None
         outcome = self.controller.take_turn(question)
         logger.debug(f"ViewModel.after_input outcome: {outcome}")
+        enable_new_game = False
         match outcome:
             case InvalidQuestion(_, reason):
                 history = set_bot_msg(history, f"Invalid question, please try again.")
@@ -132,23 +134,34 @@ class ViewModel:
                     history, None, f"You won!\n\n(You needed {questions_asked} questions to work out the answer)"
                 )
                 history = append_history(history, None, "Game over")
+                enable_new_game = True
             case LostGame(_, _, Answer(answer), subject):
                 history = set_bot_msg(history, answer)
                 history = append_history(
-                    history, None, f"No questions left, I win!\n\n(I was thinking of: {subject})"
+                    history, None, f"No questions left, I win!\n\nI was thinking of: {subject}"
                 )
                 history = append_history(history, None, "Game over")
+                enable_new_game = True
 
         # re-enable the input box
-        return gr.update(interactive=True), history
+        return (
+            gr.update(interactive=not enable_new_game, visible=not enable_new_game),
+            history,
+            gr.update(visible=enable_new_game),
+        )
 
-    def on_input(self, user_message: str, history: HistoryT) -> tuple[TextboxT, ChatbotT]:
+    def on_question_input(self, user_message: str, history: HistoryT) -> tuple[TextboxT, ChatbotT]:
         user_message = user_message.strip()
-        if not user_message:
-            return "", history
+        # TODO: gradio error handling is meh
+        # if not user_message:
+        #     raise gr.Error("Please enter a question")
         history = append_history(history, user_message)
         # disable the input box
         return gr.update(value="", interactive=False), history
+
+    def on_new_game_click(self):
+        question_input, chatbot = self.on_load()
+        return question_input, chatbot, gr.update(visible=False)
 
     def create_view(self) -> gr.Blocks:
         """
@@ -156,11 +169,22 @@ class ViewModel:
         """
         with gr.Blocks() as view:
             chatbot = gr.Chatbot()
-            msg = gr.Textbox(label="Ask a yes/no question:", interactive=False)
-
-            view.load(self.on_load, None, [msg, chatbot])
-
-            msg.submit(self.on_input, [msg, chatbot], [msg, chatbot], queue=False).then(
-                self.after_input, chatbot, [msg, chatbot]
+            question_input = gr.Textbox(
+                label="Ask a yes/no question:", interactive=False
             )
+            new_game = gr.Button("New game", visible=False)
+
+            view.load(self.on_load, None, [question_input, chatbot])
+
+            question_input.submit(
+                self.on_question_input,
+                [question_input, chatbot],
+                [question_input, chatbot],
+                queue=False,
+            ).success(
+                self.after_question_input,
+                chatbot,
+                [question_input, chatbot, new_game],
+            )
+            new_game.click(self.on_new_game_click, None, [question_input, chatbot, new_game])
         return view
