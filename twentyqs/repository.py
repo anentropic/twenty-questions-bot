@@ -1,3 +1,5 @@
+import random
+import string
 import warnings
 from datetime import datetime
 from typing import Collection
@@ -21,8 +23,16 @@ class BaseModel(peewee.Model):
         database = db
 
 
+def get_code(length=8) -> str:
+    return "".join(
+        random.choices(string.ascii_letters + string.digits, k=length)
+    )
+
+
 class User(BaseModel):
     username = peewee.CharField(unique=True)
+    password = peewee.CharField(default=get_code, max_length=16)
+    is_admin = peewee.BooleanField(default=False)
 
 
 class GameSession(BaseModel):

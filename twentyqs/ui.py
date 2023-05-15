@@ -1,5 +1,7 @@
+
 import logging
 from collections.abc import Callable
+from functools import wraps
 from threading import Lock
 from typing import ParamSpec, Protocol, TypeVar, cast
 
@@ -37,6 +39,7 @@ def with_lock(func: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator (for instance methods) to acquire a lock around the method call.
     """
+    @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         self = cast(Lockable, args[0])
         self.lock.acquire()
@@ -87,14 +90,18 @@ class ViewModel:
     lock: Lock
     controller: GameController
 
-    def __init__(self, controller: GameController):
+    def __init__(self, controller: GameController, username: str | None = None):
         self.lock = Lock()
         self.controller = controller
+        self.username = username
 
     @with_lock
-    def on_load(self) -> tuple[TextboxT, ChatbotT]:
-        """Process a game turn."""
-        begun = self.controller.start_game()
+    def on_load(self, request: gr.Request) -> tuple[TextboxT, ChatbotT]:
+        """Init a new game."""
+        username = request.username or self.username
+        if not username:
+            raise ValueError("No username provided")
+        begun = self.controller.start_game(username)
         history = [
             [
                 None,
@@ -163,10 +170,15 @@ class ViewModel:
         question_input, chatbot = self.on_load()
         return question_input, chatbot, gr.update(visible=False)
 
-    def create_view(self) -> gr.Blocks:
+    def create_view(self, auth_callback: Callable[[str, str], bool] | None) -> gr.Blocks:
         """
         Returns the gradio blocks UI object.
+
+        If `auth_callback` is given, will force Gradio to display login form. 
         """
+        if auth_callback and self.username:
+            raise ValueError("Cannot provide both `auth_callback` and `username`")
+
         with gr.Blocks() as view:
             chatbot = gr.Chatbot()
             question_input = gr.Textbox(
@@ -174,7 +186,7 @@ class ViewModel:
             )
             new_game = gr.Button("New game", visible=False)
 
-            view.load(self.on_load, None, [question_input, chatbot])
+            view.load(self.on_load, [], [question_input, chatbot])
 
             question_input.submit(
                 self.on_question_input,
@@ -187,4 +199,7 @@ class ViewModel:
                 [question_input, chatbot, new_game],
             )
             new_game.click(self.on_new_game_click, None, [question_input, chatbot, new_game])
+
+        view.auth = auth_callback
+        view.auth_message = None
         return view

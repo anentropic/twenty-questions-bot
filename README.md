@@ -11,7 +11,7 @@ Langchain chatbot that plays the "20 Questions" game
 `export` (or pass before the command) the `OPENAI_API_KEY` env var with your key.
 
 ```
-poetry run python -m twentyqs.run <username>
+poetry run bin/run.py <username>
 ```
 
 This will start the Gradio server, open the url it gives you in a web browser.
@@ -30,7 +30,9 @@ History is stored per-username. If you use a new username (or a fresh db file) y
 - feedback loop: rating system for LLM responses which lead to bad games, can form test data for future improvement
   - maybe via: https://gradio.app/docs/#flagging
 - https://promptlayer.com/ logging
-- try other LLM backends, e.g. are the OSS ones from goose.ai good enough to play it? or local LLaMA?
+- try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
   - https://github.com/kagisearch/pyllms
 - deployment
   - https://docs.beam.cloud/getting-started/langchain ?
+
+https://huggingface.co/spaces/liujch1998/vera might be handy

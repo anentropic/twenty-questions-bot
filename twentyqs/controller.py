@@ -80,19 +80,19 @@ class GameController:
 
     def __init__(
         self,
-        username: str,
         answerer: AnswerBot,
         stats_context_factory: StatsContextManagerFactory | None = None,
     ):
-        self.user = repo.get_or_create_user(username)
         self.answerer = answerer
         self.stats_context_factory = stats_context_factory
 
-    def start_game(self) -> GameBegun:
+    def start_game(self, username: str) -> GameBegun:
         """
         Start a new game.
         """
-        subject_history = repo.user_subject_history(self.user.username)
+        user = repo.get_or_create_user(username)
+
+        subject_history = repo.user_subject_history(user.username)
         self.answerer.history = subject_history
 
         if self.stats_context_factory:
@@ -100,7 +100,7 @@ class GameController:
             self.game_stats_context = mgr.__enter__()
 
         self.answerer.set_subject()
-        self.session = repo.start_game(user=self.user, subject=self.answerer.subject)
+        self.session = repo.start_game(user=user, subject=self.answerer.subject)
         return GameBegun(
             max_questions=self.answerer.max_questions,
         )

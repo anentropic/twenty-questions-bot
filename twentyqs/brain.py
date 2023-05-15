@@ -44,6 +44,7 @@ class AnswerBot:
     max_questions: int = 20
     _q_count: int = 0
     _subject: str
+    category: str
     history: list[str]
 
     num_candidates: int = 10
@@ -58,6 +59,7 @@ class AnswerBot:
         self,
         llm: BaseLanguageModel,
         simple_subject_picker: bool = False,
+        category: str = SIMPLE_CATEGORY,
         history: list[str] | None = None,
         langchain_verbose: bool = False,
     ):
@@ -65,6 +67,7 @@ class AnswerBot:
 
         self.history = history or []
         self.simple_subject_picker = simple_subject_picker
+        self.category = category
 
         self.pick_subject_chain = PickSubjectChain(llm=llm, verbose=langchain_verbose)
         self.is_yes_no_question_chain = IsYesNoQuestionChain(llm=llm, verbose=langchain_verbose)
@@ -76,12 +79,18 @@ class AnswerBot:
         cls,
         openai_model_name: str = "gpt-3.5-turbo",
         simple_subject_picker: bool = False,
+        category: str = SIMPLE_CATEGORY,
         history: list[str] | None = None,
-        *args,
-        **kwargs
+        *llm_args,
+        **llm_kwargs
     ) -> "AnswerBot":
-        llm = OpenAI(temperature=0, model_name=openai_model_name, *args, **kwargs)
-        return cls(llm=llm, simple_subject_picker=simple_subject_picker, history=history)
+        llm = OpenAI(temperature=0, model_name=openai_model_name, *llm_args, **llm_kwargs)
+        return cls(
+            llm=llm,
+            simple_subject_picker=simple_subject_picker,
+            category=category,
+            history=history,
+        )
 
     @property
     def questions_asked(self) -> int:
@@ -114,7 +123,7 @@ class AnswerBot:
                 PickSubjectParsedT,
                 self.pick_subject_chain.predict_and_parse(
                     num=self.num_candidates,
-                    category=SIMPLE_CATEGORY,
+                    category=self.category,
                     seen=self.history,
                 )
             )
@@ -148,6 +157,7 @@ class AnswerBot:
             question=question,
         )
 
+        # validate question
         is_valid, reason = cast(
             IsYesNoParsedT,
             self.is_yes_no_question_chain.predict_and_parse(
@@ -167,6 +177,7 @@ class AnswerBot:
 
         self._q_count += 1
 
+        # answer question
         answer, justification = cast(
             AnswerParsedT,
             self.answer_question_chain.predict_and_parse(
@@ -189,6 +200,7 @@ class AnswerBot:
             justification=justification,
         )
 
+        # check if user guessed the subject
         if answer is Answer.YES:
             is_deciding_question = cast(
                 DecidingParsedT,
