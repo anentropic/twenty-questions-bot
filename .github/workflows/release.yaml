@@ -79,7 +79,7 @@ jobs:
         id: metadata
         run: |
           echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%S%z)" >> $GITHUB_OUTPUT \
-          && echo "short-description='A GPT-powered bot that plays 20 Questions with you.'" >> $GITHUB_OUTPUT
+          && echo "short-description=A GPT-powered bot that plays 20 Questions with you." >> $GITHUB_OUTPUT
 
       - name: Docker meta
         id: docker-meta
@@ -96,7 +96,7 @@ jobs:
           # TODO: use the pyproject.toml version
           labels: |
             org.opencontainers.image.title=twenty-questions-bot
-            org.opencontainers.image.description=${{ steps.metadata.outputs.short-description }}
+            org.opencontainers.image.description='${{ steps.metadata.outputs.short-description }}'
             org.opencontainers.image.url=https://hub.docker.com/r/${{ env.DOCKERHUB_REPO }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ github.sha }}
@@ -136,3 +136,4 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.DOCKERHUB_REPO }}
           short-description: ${{ steps.metadata.outputs.short-description }}
+          readme-filepath: ./DOCKERHUB.md
