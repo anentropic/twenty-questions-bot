@@ -3,8 +3,12 @@ name = "twenty-questions-bot"
 version = "0.1.0"
 description = ""
 authors = ["Anentropic <ego@anentropic.com>"]
-readme = "../README.md"
-packages = [{include = "twentyqs"}]
+readme = "README.md"
+packages = [
+    {include = "twentyqs", from = "src"},
+    {include = "server", from = "src"},
+    {include = "bin", from = "src"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"

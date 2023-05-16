@@ -11,7 +11,7 @@ Langchain chatbot that plays the "20 Questions" game
 `export` (or pass before the command) the `OPENAI_API_KEY` env var with your key.
 
 ```
-poetry run bin/run.py <username>
+poetry run src/bin/run.py <username>
 ```
 
 This will start the Gradio server, open the url it gives you in a web browser.

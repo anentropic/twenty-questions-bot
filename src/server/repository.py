@@ -3,6 +3,7 @@ from functools import lru_cache
 from typing import Optional
 
 from sqlalchemy.future import Engine
+from sqlalchemy.dialects.sqlite import insert
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 from twentyqs.repository import get_code
@@ -24,12 +25,12 @@ def init_db():
     engine = get_engine()
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
-        session.merge(
-            User(
-                username="admin",
-                password=settings.admin_password,
-                is_admin=True,
-            )
+        session.exec(
+            insert(User).values({
+                "username": "admin",
+                "password": settings.admin_password,
+                "is_admin": True,
+            }).on_conflict_do_nothing(index_elements=['username'])
         )
         session.commit()
 

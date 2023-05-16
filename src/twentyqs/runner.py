@@ -49,6 +49,7 @@ def get_view(
     openai_model: str,
     simple_subject_picker: bool,
     verbose_langchain: bool,
+    username: str | None = None,
     auth_callback: Callable[[str, str], bool] | None = None,
 ) -> gr.Blocks:
     llm = OpenAI(temperature=0, model_name=openai_model)
@@ -61,11 +62,12 @@ def get_view(
         answerer=answerer,
         stats_context_factory=openai_stats_context,
     )
-    view_model = ViewModel(controller)
+    view_model = ViewModel(controller, username=username)
     return view_model.create_view(auth_callback=auth_callback)
 
 
 def run(
+    username: str,
     openai_model: str,
     db_path: str,
     clear_db: bool,
@@ -81,5 +83,6 @@ def run(
         openai_model=openai_model,
         simple_subject_picker=simple_subject_picker,
         verbose_langchain=verbose_langchain,
+        username=username,
     )
     view.launch(show_api=False)
