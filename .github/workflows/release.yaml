@@ -10,7 +10,8 @@ env:
   DOCKERHUB_REPO: anentropic/twenty-questions-bot
 
 jobs:
-  build-docker-image:
+  docker-build:
+    # https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
     strategy:
         matrix:
           platform: [linux/amd64, linux/arm64]
@@ -24,32 +25,72 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Prepare image metadata
-        id: metadata
-        run: |
-          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%S%z)" >> $GITHUB_OUTPUT \
-          && echo "git-commit=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_OUTPUT \
-          && echo "short-description='A GPT-powered bot that plays 20 Questions with you.'" >> $GITHUB_OUTPUT
-
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
+
+      - name: Docker meta
+        id: docker-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKERHUB_REPO }}
 
       - uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push multi-arch image
-        uses: docker/build-push-action@v2
+      - name: Build this arch and push by digest
+        uses: docker/build-push-action@v4
+        id: docker-build
         with:
           context: .
           platforms: ${{ matrix.platform }}
           build-args: |
             ARCHPREFIX=${{ matrix.archprefix }}
-          push: true
+          labels: ${{ steps.docker-meta.outputs.labels }}
+          outputs: type=image,name=${{ env.DOCKERHUB_REPO }},push-by-digest=true,name-canonical=true,push=true
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.docker-build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v3
+        with:
+          name: digests
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  docker-publish:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-build
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download digests
+        uses: actions/download-artifact@v3
+        with:
+          name: digests
+          path: /tmp/digests
+
+      - name: Prepare image metadata
+        id: metadata
+        run: |
+          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%S%z)" >> $GITHUB_OUTPUT \
+          && echo "short-description='A GPT-powered bot that plays 20 Questions with you.'" >> $GITHUB_OUTPUT
+
+      - name: Docker meta
+        id: docker-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKERHUB_REPO }}
           tags: |
-            ${{ env.DOCKERHUB_REPO }}:${{ github.sha }}
-            ${{ env.DOCKERHUB_REPO }}:latest
+            type=pep440,pattern={{version}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
           # https://github.com/crazy-max/ghaction-docker-meta/blob/1a678de43d82fbc865fe8fe6b8586fa82d9596aa/src/meta.ts#L350
           # https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys
           # TODO: use the pyproject.toml version
@@ -67,6 +108,26 @@ jobs:
             aarch64
             arm64
             amd64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.DOCKERHUB_REPO }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKERHUB_REPO }}:${{ steps.docker-meta.outputs.version }}
 
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v3
