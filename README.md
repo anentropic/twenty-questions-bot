@@ -30,9 +30,9 @@ History is stored per-username. If you use a new username (or a fresh db file) y
 - feedback loop: rating system for LLM responses which lead to bad games, can form test data for future improvement
   - maybe via: https://gradio.app/docs/#flagging
 - https://promptlayer.com/ logging
+  - https://api.openai.com/dashboard/billing/usage can be accessed via HTTP basic auth using username + API key
+  - see also https://api.openai.com/dashboard/billing/credit_grants
 - try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
   - https://github.com/kagisearch/pyllms
-- deployment
-  - https://docs.beam.cloud/getting-started/langchain ?
+  - https://huggingface.co/liujch1998/vera might be handy (it did well at recognising yes/no questions when I tried it)
 
-https://huggingface.co/spaces/liujch1998/vera might be handy

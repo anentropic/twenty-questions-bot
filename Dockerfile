@@ -78,13 +78,12 @@ EXPOSE 8000
 ## ------------------------- use distroless `cc` image  ----------------------------- ##
 
 FROM ${PYTHON_RUN_IMAGE} as run-image
-ARG ENV_SECRETS="runtime-secrets"
-# TODO: it would be great if chipset was autodetected
-# either: x86_64 | aarch64
-ARG CHIPSET_ARCH=aarch64
+# persistent env values:
+# ARG ENV_SECRETS="runtime-secrets"
+ARG ARCHPREFIX
 ENV PATH="/workspace/app/.venv/bin:$PATH" \
-    ENV_SECRETS="${ENV_SECRETS}" \
-    CHIPSET_ARCH="${CHIPSET_ARCH}-linux-gnu"
+    # ENV_SECRETS="${ENV_SECRETS}" \
+    CHIPSET_ARCH="${ARCHPREFIX}-linux-gnu"
 
 ## ------------------------- copy python itself from builder -------------------------- ##
 COPY --from=python-base /usr/local/lib/ /usr/local/lib/

@@ -1,0 +1,77 @@
+name: Publish Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOCKERHUB_USERNAME: anentropic
+  DOCKERHUB_REPO: anentropic/twenty-questions-bot
+
+jobs:
+  build-docker-image:
+    strategy:
+        matrix:
+          platform: [linux/amd64, linux/arm64]
+          include:
+            - platform: linux/amd64
+              archprefix: x86_64
+            - platform: linux/arm64
+              archprefix: aarch64
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare image metadata
+        id: metadata
+        run: |
+          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%S%z)" >> $GITHUB_OUTPUT \
+          && echo "git-commit=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_OUTPUT \
+          && echo "short-description='A GPT-powered bot that plays 20 Questions with you.'" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            ARCHPREFIX=${{ matrix.archprefix }}
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:${{ github.sha }}
+            ${{ env.DOCKERHUB_REPO }}:latest
+          # https://github.com/crazy-max/ghaction-docker-meta/blob/1a678de43d82fbc865fe8fe6b8586fa82d9596aa/src/meta.ts#L350
+          # https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys
+          # TODO: use the pyproject.toml version
+          labels: |
+            org.opencontainers.image.title=twenty-questions-bot
+            org.opencontainers.image.description=${{ steps.metadata.outputs.short-description }}
+            org.opencontainers.image.url=https://hub.docker.com/r/${{ env.DOCKERHUB_REPO }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.metadata.outputs.timestamp }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
+            linux
+            x86_64
+            aarch64
+            arm64
+            amd64
+
+      - name: Update repo description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.DOCKERHUB_REPO }}
+          short-description: ${{ steps.metadata.outputs.short-description }}

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "twenty-questions-bot"
 version = "0.1.0"
-description = ""
+description = "A GPT-powered bot that plays 20 Questions with you."
 authors = ["Anentropic <ego@anentropic.com>"]
 readme = "README.md"
 packages = [
