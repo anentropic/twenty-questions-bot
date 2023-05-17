@@ -180,7 +180,12 @@ class ViewModel:
             raise ValueError("Cannot provide both `auth_callback` and `username`")
 
         with gr.Blocks() as view:
-            chatbot = gr.Chatbot()
+            chatbot = gr.Chatbot([
+                [
+                    None,
+                    "🤖💭 Please be patient while I pick a subject...",
+                ],
+            ])
             question_input = gr.Textbox(
                 label="Ask a yes/no question:", interactive=False
             )
