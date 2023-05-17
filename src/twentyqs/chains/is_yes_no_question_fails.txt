@@ -16,3 +16,15 @@ Is this a yes/no question: the coca cola brand?
 Subject: Mona Lisa painting
 Question: are there many of them or only one?
 (True, 'The answer is either yes or no, as there is only one Mona Lisa painting.')
+
+
+Subject: Slinky
+Question: is it round?
+Invalid question, please try again.
+(Because the answer is no, it is not round.)
+🤦🏻‍♂️
+
+Subject: Slinky
+Question: is there only one of it?
+Invalid question, please try again.
+(Because it requires context and cannot be answered with a simple yes or no.)

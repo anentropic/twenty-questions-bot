@@ -1,0 +1,31 @@
+# fly.toml app configuration file generated for twentyqs on 2023-05-17T09:50:03+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "twentyqs"
+primary_region = "lhr"
+
+[build]
+  # image = "anentropic/twenty-questions-bot:main"
+  dockerfile = "Dockerfile"
+
+[build.args]
+  ARCHPREFIX = "x86_64"
+
+[mounts]
+  source="data"
+  destination="/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+
+[env]
+  OPENAI_MODEL = "gpt-3.5-turbo"
+  SIMPLE_SUBJECT_PICKER = "false"
+  DB_PATH = "/data/twentyqs.db"
+  LOG_LEVEL = "INFO"
+  VERBOSE_LANGCHAIN = "true"

@@ -117,4 +117,4 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 STOPSIGNAL SIGINT
 EXPOSE 8000/tcp
 ENTRYPOINT [ "uvicorn" ]
-CMD [ "server.app:app", "--host=0.0.0.0" ]
+CMD [ "server.app:app", "--host=0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=*" ]
