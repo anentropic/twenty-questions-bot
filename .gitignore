@@ -133,3 +133,4 @@ dmypy.json
 
 .space
 wireguard.conf
+.DS_Store
