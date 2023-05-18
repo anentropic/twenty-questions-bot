@@ -10,7 +10,7 @@ Langchain chatbot that plays the "20 Questions" game
 
 ### Docker
 
-There is also an image published to Docker Hub: `anentropic/twenty-questions-bot`.
+There is also an image published to Docker Hub: `anentropic/twenty-questions-bot` (no local install required).
 
 ## Play
 
@@ -18,7 +18,7 @@ History is stored per-username. If you use a new username (or a fresh db file) y
 
 ### Python install
 
-`export` (or pass before the command) the `OPENAI_API_KEY` env var with your key, then:
+`export OPENAI_API_KEY=*****` env var with your key, then:
 
 ```
 poetry run src/bin/run.py <username>
@@ -27,6 +27,8 @@ poetry run src/bin/run.py <username>
 This will start the Gradio server, open the url it gives you in a web browser.
 
 ### Docker
+
+There is also an image published to Docker Hub, which runs a web server with a couple more features. This is mostly intended for hosting twenty-questions-bot on the internet, but is also handy way to run locally. 
 
 ```sh
 docker run \
@@ -57,5 +59,5 @@ Server is initalised with an `admin` user, with your password. You can use this 
   - see also https://api.openai.com/dashboard/billing/credit_grants
 - try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
   - https://github.com/kagisearch/pyllms
-  - https://huggingface.co/liujch1998/vera might be handy (it did well at recognising yes/no questions when I tried it)
+  - https://huggingface.co/liujch1998/vera might be handy, it did well at recognising yes/no questions when I tried it (it is a 4.7B param T5 model)
 
