@@ -11,7 +11,7 @@ from langchain.callbacks.openai_info import OpenAICallbackHandler
 
 from twentyqs.brain import AnswerBot
 from twentyqs.controller import GameController
-from twentyqs.repository import create_tables
+from twentyqs.repository import Repository
 from twentyqs.ui import ViewModel
 
 
@@ -46,6 +46,7 @@ def openai_stats_context():
 
 
 def get_view(
+    repository: Repository,
     openai_model: str,
     simple_subject_picker: bool,
     verbose_langchain: bool,
@@ -59,6 +60,7 @@ def get_view(
         langchain_verbose=verbose_langchain,
     )
     controller = GameController(
+        repository=repository,
         answerer=answerer,
         stats_context_factory=openai_stats_context,
     )
@@ -77,9 +79,11 @@ def run(
 ):
     logging.basicConfig(level=logging.getLevelName(log_level))
 
-    create_tables(db_name=db_path, drop=clear_db)
+    repo = Repository(db_path)
+    repo.init_db(drop=clear_db)
 
     view = get_view(
+        repository=repo,
         openai_model=openai_model,
         simple_subject_picker=simple_subject_picker,
         verbose_langchain=verbose_langchain,

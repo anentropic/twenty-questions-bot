@@ -28,3 +28,29 @@ Subject: Slinky
 Question: is there only one of it?
 Invalid question, please try again.
 (Because it requires context and cannot be answered with a simple yes or no.)
+
+
+Subject: the Beatles band
+Question: is there only one of them in existence? if there is only one, answer “yes” else “no”
+Invalid question, please try again.
+(Because it requires a specific numeric answer, not a yes or no answer.)
+
+Subject: the Beatles band
+Question: is it radar?
+Invalid question, please try again.
+(Because it is not a valid yes/no question.)
+
+Subject: the Beatles band
+Question: is it a refrigerator?
+Invalid question, please try again.
+(Because it is not a relevant question to the subject.)
+
+Subject: the Beatles band
+Question: is it radio?
+Invalid question, please try again.
+(Because it is not applicable to the subject.)
+
+Subject: the Beatles band
+Question: is it powered by electricity?
+Sometimes
+👍 true I guess!
