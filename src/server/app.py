@@ -1,9 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import gradio as gr  # type: ignore
-from sqladmin import Admin, ModelView
+from sqladmin import Admin, ModelView, BaseView, expose
 from starlette.applications import Starlette
+from starlette.responses import FileResponse
 
 from twentyqs.repository import create_tables
 from twentyqs.runner import get_view
@@ -15,6 +17,21 @@ from .repository import User, init_db, get_engine
 
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.username, User.is_admin]  # type: ignore
+
+
+class DbFileView(BaseView):
+    name = "Download db file"
+    icon = "fa-database"
+
+    @expose("/db/download", methods=["GET"])
+    def download(self, request):
+        settings = get_settings()
+        path = Path(settings.db_path)
+        return FileResponse(
+            path=path,
+            media_type="application/octet-stream",
+            filename=path.name,
+        )
 
 
 @asynccontextmanager
@@ -29,6 +46,7 @@ async def lifespan(app: Starlette):
 
     admin = Admin(app=app, engine=get_engine(), authentication_backend=AdminAuth())
     admin.add_view(UserAdmin)
+    admin.add_view(DbFileView)
 
     blocks = get_view(
         openai_model=settings.openai_model,
