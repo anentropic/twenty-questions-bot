@@ -29,3 +29,6 @@ primary_region = "lhr"
   DB_PATH = "/data/twentyqs.db"
   LOG_LEVEL = "INFO"
   VERBOSE_LANGCHAIN = "true"
+
+[deploy]
+  release_command = "alembic upgrade head"

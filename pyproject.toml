@@ -22,6 +22,7 @@ sqladmin = "^0.10.3"
 sqlmodel = "^0.0.8"
 starlette = "^0.26.1"
 sqlalchemy-get-or-create = "^0.1.5"
+alembic = "^1.11.1"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "*"
