@@ -62,7 +62,13 @@ RUN apt-get install -y --no-install-recommends curl \
 WORKDIR /workspace/app
 RUN curl -sSL https://install.python-poetry.org | python - \
     && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
-COPY --chown=65532:65532 pyproject.toml poetry.lock README.md setup.cfg ./
+COPY --chown=65532:65532 \
+    pyproject.toml \
+    poetry.lock \
+    README.md \
+    setup.cfg \
+    alembic.ini \
+    ./
 RUN python -m venv --copies /workspace/app/.venv
 RUN . /workspace/app/.venv/bin/activate \
     && pip install -U cython \
@@ -103,6 +109,7 @@ COPY --from=python-base /usr/lib/${CHIPSET_ARCH}/libsqlite3.so.0 /lib/${CHIPSET_
 ## -------------------------- add application ---------------------------------------- ##
 COPY --from=build-image --chown=65532:65532 /workspace/app/.venv  /workspace/app/.venv
 COPY --from=build-image --chown=65532:65532 /workspace/app/src /workspace/app/src
+COPY --from=build-image --chown=65532:65532 /workspace/app/alembic.ini  /workspace/app/alembic.ini
 
 ## --------------------------- standardize execution env ----------------------------- ##
 ENV PIP_DEFAULT_TIMEOUT=100 \
@@ -116,5 +123,11 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     LC_ALL=C.UTF-8
 STOPSIGNAL SIGINT
 EXPOSE 8000/tcp
-ENTRYPOINT [ "uvicorn" ]
-CMD [ "server.app:app", "--host=0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=*" ]
+# no ENTRYPOINT as we need to be able to run alembic too
+CMD [ \
+    "uvicorn", \
+    "server.app:app", \
+    "--host=0.0.0.0", \
+    "--proxy-headers", \
+    "--forwarded-allow-ips=*" \
+]
