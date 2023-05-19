@@ -1,4 +1,3 @@
-
 import logging
 import random
 import warnings
@@ -8,9 +7,19 @@ from typing import cast
 from langchain import OpenAI
 from langchain.schema import BaseLanguageModel
 
-from twentyqs.chains.answer_question import AnswerQuestionChain, Answer, ParsedT as AnswerParsedT
-from twentyqs.chains.deciding_question import IsDecidingQuestionChain, ParsedT as DecidingParsedT
-from twentyqs.chains.is_yes_no_question import IsYesNoQuestionChain, ParsedT as IsYesNoParsedT
+from twentyqs.chains.answer_question import (
+    AnswerQuestionChain,
+    Answer,
+    ParsedT as AnswerParsedT,
+)
+from twentyqs.chains.deciding_question import (
+    IsDecidingQuestionChain,
+    ParsedT as DecidingParsedT,
+)
+from twentyqs.chains.is_yes_no_question import (
+    IsYesNoQuestionChain,
+    ParsedT as IsYesNoParsedT,
+)
 from twentyqs.chains.pick_subject import (
     PickSubjectChain,
     ParsedT as PickSubjectParsedT,
@@ -70,9 +79,15 @@ class AnswerBot:
         self.category = category
 
         self.pick_subject_chain = PickSubjectChain(llm=llm, verbose=langchain_verbose)
-        self.is_yes_no_question_chain = IsYesNoQuestionChain(llm=llm, verbose=langchain_verbose)
-        self.answer_question_chain = AnswerQuestionChain(llm=llm, verbose=langchain_verbose)
-        self.deciding_question_chain = IsDecidingQuestionChain(llm=llm, verbose=langchain_verbose)
+        self.is_yes_no_question_chain = IsYesNoQuestionChain(
+            llm=llm, verbose=langchain_verbose
+        )
+        self.answer_question_chain = AnswerQuestionChain(
+            llm=llm, verbose=langchain_verbose
+        )
+        self.deciding_question_chain = IsDecidingQuestionChain(
+            llm=llm, verbose=langchain_verbose
+        )
 
     @classmethod
     def using_openai(
@@ -82,9 +97,11 @@ class AnswerBot:
         category: str = SIMPLE_CATEGORY,
         history: list[str] | None = None,
         *llm_args,
-        **llm_kwargs
+        **llm_kwargs,
     ) -> "AnswerBot":
-        llm = OpenAI(temperature=0, model_name=openai_model_name, *llm_args, **llm_kwargs)
+        llm = OpenAI(
+            temperature=0, model_name=openai_model_name, *llm_args, **llm_kwargs
+        )
         return cls(
             llm=llm,
             simple_subject_picker=simple_subject_picker,
@@ -108,7 +125,7 @@ class AnswerBot:
         if self._subject is None:
             self.set_subject()
         return self._subject
-    
+
     def set_subject(self) -> None:
         self._subject = self.pick_subject()
         self.history.append(self._subject)
@@ -125,14 +142,16 @@ class AnswerBot:
                     num=self.num_candidates,
                     category=self.category,
                     seen=self.history,
-                )
+                ),
             )
         else:
-            category = random.choice((
-                OBJECT_CATEGORIES,
-                PEOPLE_CATEGORIES,
-                PLACE_CATEGORIES,
-            ))
+            category = random.choice(
+                (
+                    OBJECT_CATEGORIES,
+                    PEOPLE_CATEGORIES,
+                    PLACE_CATEGORIES,
+                )
+            )
             candidates = []
             for theme in category:
                 candidates.extend(
@@ -142,7 +161,7 @@ class AnswerBot:
                             num=self.num_candidates,
                             category=theme,
                             seen=self.history,
-                        )
+                        ),
                     )
                 )
         return random.choice(candidates)
@@ -157,13 +176,13 @@ class AnswerBot:
             question=question,
         )
 
-        # validate question
+        # validate question
         is_valid, reason = cast(
             IsYesNoParsedT,
             self.is_yes_no_question_chain.predict_and_parse(
                 subject=self.subject,
                 question=question,
-            )
+            ),
         )
         turn_validate = TurnValidate(
             is_valid=is_valid,
@@ -184,7 +203,7 @@ class AnswerBot:
                 today=datetime.now().strftime("%d %B %Y"),
                 subject=self.subject,
                 question=question,
-            )
+            ),
         )
         # TODO: log these failures
         # should parser behave differently?
@@ -192,7 +211,7 @@ class AnswerBot:
             raise ValueError("Failed to parse answer from LLM response.")
         if not isinstance(answer, Answer):
             warnings.warn(f"Unexpected answer: {answer}")
-            
+
         turn_answer = TurnAnswer(
             questions_asked=self.questions_asked,
             questions_remaining=self.questions_remaining,
@@ -207,7 +226,7 @@ class AnswerBot:
                 self.deciding_question_chain.predict_and_parse(
                     subject=self.subject,
                     question=question,
-                )
+                ),
             )
         else:
             is_deciding_question = False

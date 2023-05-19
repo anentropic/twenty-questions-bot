@@ -73,7 +73,7 @@ ParsedT = tuple[bool, str | None]
 def _get_matched_value(unparsed: str) -> str | None:
     match = splitter_re.match(unparsed)
     if match:
-        return match.groupdict()['value'] or None
+        return match.groupdict()["value"] or None
     return None
 
 

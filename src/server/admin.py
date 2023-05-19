@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 from markupsafe import Markup
 from pygments import highlight

@@ -10,35 +10,36 @@ from .config import get_settings
 
 
 class Repository(BaseRepository):
-
     def init_db(self, drop=False):
         super().init_db(drop=drop)
         with Session(self.engine) as session:
             session.exec(
-                insert(User).values({
-                    "username": "admin",
-                    "password": get_settings().admin_password,
-                    "is_admin": True,
-                }).on_conflict_do_nothing(index_elements=['username'])
+                insert(User)
+                .values(
+                    {
+                        "username": "admin",
+                        "password": get_settings().admin_password,
+                        "is_admin": True,
+                    }
+                )
+                .on_conflict_do_nothing(index_elements=["username"])
             )
             session.commit()
 
     @with_session
     def get_by_username(self, session: Session, username: str) -> User | None:
-        return session.exec(
-            select(User).where(User.username == username)
-        ).one_or_none()
+        return session.exec(select(User).where(User.username == username)).one_or_none()
 
     @with_session
     def get_admin_by_username(self, session: Session, username: str) -> User | None:
         return session.exec(
             select(User).where(
                 User.username == username,
-                User.is_admin == True,
+                User.is_admin.is_(True),  # type: ignore
             )
         ).one_or_none()
 
-    def authenticate_admin(self, username: str, password: str) -> bool:
+    def authenticate_player(self, username: str, password: str) -> bool:
         admin = self.get_by_username(username)
         if not admin:
             return False

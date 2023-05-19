@@ -28,9 +28,7 @@ class NotFound(Exception):
 
 
 def get_code(length=8) -> str:
-    return "".join(
-        random.choices(string.ascii_letters + string.digits, k=length)
-    )
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 class User(SQLModel, table=True):
@@ -53,7 +51,7 @@ class GameSession(SQLModel, table=True):
     finished_at: Optional[datetime]
     subject: str
     user_won: Optional[bool]
-    llm_stats: dict | None = Field(default=None, sa_column=Column(JSON))  # JSONField(serialize, deserialize, null=True)
+    llm_stats: dict | None = Field(default=None, sa_column=Column(JSON))
 
     turns: List["Turn"] = Relationship(back_populates="gamesession")
 
@@ -76,24 +74,25 @@ class TurnLog(SQLModel, table=True):
     turn: Turn = Relationship(back_populates="logs")
     timestamp: datetime = Field(default_factory=datetime.now)
     key: str
-    value: dict = Field(default_factory=dict, sa_column=Column(JSON))  # JSONField(serialize, deserialize)
+    value: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 def with_session(f):
     """
     Will use the session passed in if given, or create a new one if none is passed.
     """
+
     @wraps(f)
     def wrapper(self, *args, **kwargs):
         if "session" in kwargs or (args and isinstance(args[0], Session)):
             return f(self, *args, **kwargs)
         with Session(self.engine) as session:
             return f(self, session, *args, **kwargs)
+
     return wrapper
 
 
 class Repository:
-
     engine: Engine
 
     def __init__(self, db_path: str):
@@ -104,10 +103,10 @@ class Repository:
             json_serializer=serialize,
             json_deserializer=deserialize,
         )
-    
+
     def __del__(self):
         self.engine.dispose()
-    
+
     def init_db(self, drop=False):
         if drop:
             SQLModel.metadata.drop_all(self.engine)
@@ -137,29 +136,21 @@ class Repository:
         losses = result.get(False, 0)
 
         avg_query = (
-            session.query(func.count(Turn.id).label('count'))
+            session.query(func.count(Turn.id).label("count"))
             .join(GameSession, GameSession.id == Turn.gamesession_id)
             .join(User, User.id == GameSession.user_id)
             .filter(
                 User.username == username,
-                GameSession.user_won.isnot(None)  # type: ignore
+                GameSession.user_won.isnot(None),  # type: ignore
             )
             .group_by(GameSession.id)
         )
-        overall_avg_questions = (
-            session.exec(func.avg(avg_query.subquery().c.count))  # type: ignore
-            .scalar()
-        )
-        avg_questions_to_win = (
-            session.exec(  # type: ignore
-                func.avg(
-                    avg_query.filter(GameSession.user_won == True)
-                    .subquery()
-                    .c.count
-                )
-            )
-            .scalar()
-        )
+        overall_avg_questions = session.exec(
+            func.avg(avg_query.subquery().c.count)
+        ).scalar()  # type: ignore
+        avg_questions_to_win = session.exec(  # type: ignore
+            func.avg(avg_query.filter(GameSession.user_won is True).subquery().c.count)
+        ).scalar()
         return UserStats(
             played=played,
             unfinished=unfinished,
@@ -206,16 +197,18 @@ class Repository:
             updated = (
                 session.query(GameSession)
                 .filter(GameSession.id == game_id)
-                .update({
-                    GameSession.finished_at: datetime.now(),
-                    GameSession.user_won: user_won,
-                    GameSession.llm_stats: llm_stats
-                })
+                .update(
+                    {
+                        GameSession.finished_at: datetime.now(),
+                        GameSession.user_won: user_won,
+                        GameSession.llm_stats: llm_stats,
+                    }
+                )
             )
         if not updated:
             raise NotFound(GameSession, game_id)
         if updated > 1:
-            warnings.warn(f'Updated {updated} rows for GameSession id:{game_id}')
+            warnings.warn(f"Updated {updated} rows for GameSession id:{game_id}")
 
     @with_session
     def start_turn(self, session: Session, game: GameSession, question: str) -> Turn:
@@ -228,7 +221,9 @@ class Repository:
         return turn
 
     @with_session
-    def finish_turn(self, session: Session, turn_id: int, answer: str | None = None) -> None:
+    def finish_turn(
+        self, session: Session, turn_id: int, answer: str | None = None
+    ) -> None:
         """
         Finish a turn.
         """
@@ -236,18 +231,22 @@ class Repository:
             updated = (
                 session.query(Turn)
                 .filter(Turn.id == turn_id)
-                .update({
-                    Turn.finished_at: datetime.now(),
-                    Turn.answer: answer,
-                })
+                .update(
+                    {
+                        Turn.finished_at: datetime.now(),
+                        Turn.answer: answer,
+                    }
+                )
             )
         if not updated:
             raise NotFound(Turn, turn_id)
         if updated > 1:
-            warnings.warn(f'Updated {updated} rows for Turn id:{turn_id}')
+            warnings.warn(f"Updated {updated} rows for Turn id:{turn_id}")
 
     @with_session
-    def store_turn_logs(self, session: Session, logs: Sequence[dict[str, JsonT]]) -> None:
+    def store_turn_logs(
+        self, session: Session, logs: Sequence[dict[str, JsonT]]
+    ) -> None:
         """
         Store the logs for a turn.
         """

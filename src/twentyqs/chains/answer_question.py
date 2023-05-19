@@ -33,27 +33,27 @@ Use the following format:
 """
 
 examples = [
-"""Subject: Albert Einstein
+    """Subject: Albert Einstein
 Question: is it alive?
 Thought: Albert Einstein died in 1955. Albert Einstein is not alive.
 Answer: No""",
-"""Subject: Albert Einstein
+    """Subject: Albert Einstein
 Question: is it animal?
 Thought: Albert Einstein was alive but was not a vegetable.
 Answer: Yes""",
-"""Subject: Albert Einstein
+    """Subject: Albert Einstein
 Question: is it yellow?
 Thought: Albert Einstein does not have a specific colour. His skin was predominantly 'flesh' colour.
 Answer: No""",
-"""Subject: The Brooklyn Bridge
+    """Subject: The Brooklyn Bridge
 Question: is it mineral?
 Thought: It is a non-living object that is made from metal and other materials that were extracted from the earth.
 Answer: Yes""",
-"""Subject: Venus
+    """Subject: Venus
 Question: is it visible?
 Thought: Venus is visible in the sky at night, but not during the day.
 Answer: Sometimes""",
-"""Subject: God
+    """Subject: God
 Question: does it exist?
 Thought: The answer is unknowable.
 Answer: I don't know""",
@@ -68,7 +68,7 @@ ParsedT = tuple[AnswerT, str | None]
 def _get_matched_value(unparsed: str) -> str | None:
     match = splitter_re.match(unparsed)
     if match:
-        return match.groupdict()['value'] or None
+        return match.groupdict()["value"] or None
     return None
 
 
@@ -89,10 +89,7 @@ class AnswerQuestionOutputParser(BaseOutputParser[ParsedT]):
 class AnswerQuestionChain(LLMChain):
     prompt = PromptTemplate.from_examples(
         examples=examples,
-        suffix=(
-            "Subject: {subject}\n"
-            "Question: {question}\n"
-        ),
+        suffix=("Subject: {subject}\n" "Question: {question}\n"),
         prefix=prefix,
         input_variables=["today", "subject", "question"],
         output_parser=AnswerQuestionOutputParser(),

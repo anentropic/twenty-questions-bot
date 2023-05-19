@@ -70,7 +70,6 @@ TurnOutcome = InvalidQuestion | ContinueGame | WonGame | LostGame
 
 
 class GameController:
-    
     answerer: AnswerBot
     stats_context_factory: StatsContextManagerFactory | None
     _stats_context_mgr: StatsContextManager | None = None
@@ -125,15 +124,31 @@ class GameController:
         Log a turn.
         """
         logs: list[dict[str, JsonT]] = [
-            {"turn_id": turn.id, "key": LogKey.BEGIN_TURN, "value": asdict(summary.begin)},
-            {"turn_id": turn.id, "key": LogKey.VALIDATE_QUESTION, "value": asdict(summary.validate)},
+            {
+                "turn_id": turn.id,
+                "key": LogKey.BEGIN_TURN,
+                "value": asdict(summary.begin),
+            },
+            {
+                "turn_id": turn.id,
+                "key": LogKey.VALIDATE_QUESTION,
+                "value": asdict(summary.validate),
+            },
         ]
         if isinstance(summary, ValidQuestionSummary):
             logs.append(
-                {"turn_id": turn.id, "key": LogKey.ANSWER_QUESTION, "value": asdict(summary.answer)}
+                {
+                    "turn_id": turn.id,
+                    "key": LogKey.ANSWER_QUESTION,
+                    "value": asdict(summary.answer),
+                }
             )
             logs.append(
-                {"turn_id": turn.id, "key": LogKey.IS_DECIDING_QUESTION, "value": asdict(summary.end_game)}
+                {
+                    "turn_id": turn.id,
+                    "key": LogKey.IS_DECIDING_QUESTION,
+                    "value": asdict(summary.end_game),
+                }
             )
         self.db.store_turn_logs(logs=logs)
 
@@ -154,7 +169,9 @@ class GameController:
         outcome: TurnOutcome
         match summary:
             case InvalidQuestionSummary(begin, validate):
-                outcome = InvalidQuestion(question=begin.question, reason=validate.reason or "")
+                outcome = InvalidQuestion(
+                    question=begin.question, reason=validate.reason or ""
+                )
             case ValidQuestionSummary(TurnResult.CONTINUE, begin, _, answer, _):
                 outcome = ContinueGame(
                     questions_asked=answer.questions_asked,

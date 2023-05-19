@@ -55,6 +55,7 @@ splitter_re = re.compile(r"^\d+\.\s*(.+)$", re.MULTILINE)
 
 ParsedT = list[str]
 
+
 class NumberedListParser(BaseOutputParser[ParsedT]):
     def parse(self, text: str) -> ParsedT:
         logger.debug("NumberedListParser.parse: %s", text)
@@ -68,6 +69,7 @@ class PickSubjectChain(LLMChain):
     a history of items that have already been used and ask it to exclude them.
     (this history should persist across multiple game sesisons)
     """
+
     prompt = PromptTemplate(
         template=template,
         input_variables=["num", "category", "seen"],

@@ -12,7 +12,7 @@ class DateTimeEncoder(json.JSONEncoder):
 class DateTimeDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):
         super().__init__(object_hook=self.object_hook, *args, **kwargs)
-    
+
     def object_hook(self, obj):
         for key, value in obj.items():
             try:
@@ -23,10 +23,10 @@ class DateTimeDecoder(json.JSONDecoder):
 
 
 def serialize(obj, /, **kwargs):
-    kwargs['cls'] = DateTimeEncoder
+    kwargs["cls"] = DateTimeEncoder
     return json.dumps(obj, **kwargs)
 
 
 def deserialize(obj, /, **kwargs):
-    kwargs['cls'] = DateTimeDecoder
+    kwargs["cls"] = DateTimeDecoder
     return json.loads(obj, **kwargs)

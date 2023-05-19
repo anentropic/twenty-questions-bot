@@ -23,7 +23,7 @@ class AdminAuth(AuthenticationBackend):
             return False
         if not admin.password == password:
             return False
-        
+
         request.session.update({"adminuser": username})
         return True
 

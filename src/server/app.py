@@ -36,7 +36,7 @@ async def lifespan(app: Starlette):
             repository=db,
             secret_key=settings.secret_key,
         ),
-        templates_dir=str(Path(__file__).parent / "templates"),
+        templates_dir=str(Path(__file__).parent / "templates" / "sqladmin"),
     )
     admin.add_view(UserAdmin)
     admin.add_view(GameSessionAdmin)
@@ -49,7 +49,7 @@ async def lifespan(app: Starlette):
         openai_model=settings.openai_model,
         simple_subject_picker=settings.simple_subject_picker,
         verbose_langchain=settings.verbose_langchain,
-        auth_callback=db.authenticate_admin,
+        auth_callback=db.authenticate_player,
     )
 
     gr.mount_gradio_app(app, blocks, path="/")
