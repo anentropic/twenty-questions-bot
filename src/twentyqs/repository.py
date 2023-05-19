@@ -53,7 +53,7 @@ class GameSession(SQLModel, table=True):
     finished_at: Optional[datetime]
     subject: str
     user_won: Optional[bool]
-    llm_stats: dict = Field(default_factory=dict, sa_column=Column(JSON))  # JSONField(serialize, deserialize, null=True)
+    llm_stats: dict | None = Field(default=None, sa_column=Column(JSON))  # JSONField(serialize, deserialize, null=True)
 
     turns: List["Turn"] = Relationship(back_populates="gamesession")
 
@@ -104,6 +104,9 @@ class Repository:
             json_serializer=serialize,
             json_deserializer=deserialize,
         )
+    
+    def __del__(self):
+        self.engine.dispose()
     
     def init_db(self, drop=False):
         if drop:

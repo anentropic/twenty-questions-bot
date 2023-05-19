@@ -22,9 +22,11 @@ class DateTimeDecoder(json.JSONDecoder):
         return obj
 
 
-def serialize(obj):
-    return json.dumps(obj, cls=DateTimeEncoder)
+def serialize(obj, /, **kwargs):
+    kwargs['cls'] = DateTimeEncoder
+    return json.dumps(obj, **kwargs)
 
 
-def deserialize(obj):
-    return json.loads(obj, cls=DateTimeDecoder)
+def deserialize(obj, /, **kwargs):
+    kwargs['cls'] = DateTimeDecoder
+    return json.loads(obj, **kwargs)

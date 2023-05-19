@@ -45,7 +45,7 @@ def run_migrations_offline() -> None:
     if db_path:
         url = f"sqlite:///{db_path}"
     else:
-        url = config.get_main_option("sqlalchemy.url")
+        url = config.get_main_option("sqlalchemy.url", "")
     context.configure(
         url=url,
         target_metadata=target_metadata,
