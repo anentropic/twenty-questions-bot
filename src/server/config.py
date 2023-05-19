@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-3.5-turbo"
     simple_subject_picker: bool = True
     db_path: str = "twentyqs.db"
+    alembic_config: str = "alembic.ini"
     log_level: str = "INFO"
     verbose_langchain: bool = False
     admin_password: str

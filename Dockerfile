@@ -123,6 +123,7 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     LC_ALL=C.UTF-8
 STOPSIGNAL SIGINT
 EXPOSE 8000/tcp
+WORKDIR /workspace/app
 # no ENTRYPOINT as we need to be able to run alembic too
 CMD [ \
     "uvicorn", \

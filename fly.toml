@@ -14,8 +14,8 @@ primary_region = "lhr"
   ARCHPREFIX = "x86_64"
 
 [mounts]
-  source="data"
-  destination="/data"
+  source = "data"
+  destination = "/data"
 
 [http_service]
   internal_port = 8000
@@ -29,6 +29,3 @@ primary_region = "lhr"
   DB_PATH = "/data/twentyqs.db"
   LOG_LEVEL = "INFO"
   VERBOSE_LANGCHAIN = "true"
-
-[deploy]
-  release_command = "alembic upgrade head"

@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import gradio as gr  # type: ignore
+from alembic.config import Config
+from alembic import command
 from sqladmin import Admin
 from starlette.applications import Starlette
 
@@ -25,6 +27,10 @@ async def lifespan(app: Starlette):
     settings = get_settings()
 
     logging.basicConfig(level=logging.getLevelName(settings.log_level))
+
+    # fly.io attaches volumes too late to use `deploy` command to run migrations
+    alembic_cfg = Config(settings.alembic_config)
+    command.upgrade(alembic_cfg, "head")
 
     db = Repository(settings.db_path)
     db.init_db(drop=False)
