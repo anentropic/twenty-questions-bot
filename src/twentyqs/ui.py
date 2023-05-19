@@ -1,4 +1,3 @@
-
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -27,7 +26,7 @@ ButtonT = dict | str
 HistoryT = list[list[str | None]]
 ChatbotT = dict | HistoryT
 
-T = TypeVar('T')
+T = TypeVar("T")
 P = ParamSpec("P")
 
 
@@ -39,6 +38,7 @@ def with_lock(func: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator (for instance methods) to acquire a lock around the method call.
     """
+
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         self = cast(Lockable, args[0])
@@ -49,6 +49,7 @@ def with_lock(func: Callable[P, T]) -> Callable[P, T]:
             raise e
         finally:
             self.lock.release()
+
     return wrapper
 
 
@@ -86,7 +87,6 @@ def get_bot_msg(history: HistoryT) -> str | None:
 
 
 class ViewModel:
-
     lock: Lock
     controller: GameController
 
@@ -118,7 +118,9 @@ class ViewModel:
         return gr.update(interactive=True, visible=True), history
 
     @with_lock
-    def after_question_input(self, history: HistoryT) -> tuple[TextboxT, ChatbotT, ButtonT]:
+    def after_question_input(
+        self, history: HistoryT
+    ) -> tuple[TextboxT, ChatbotT, ButtonT]:
         """Process a game turn."""
         question = get_user_msg(history)
         assert question is not None
@@ -127,7 +129,7 @@ class ViewModel:
         enable_new_game = False
         match outcome:
             case InvalidQuestion(_, reason):
-                history = set_bot_msg(history, f"Invalid question, please try again.")
+                history = set_bot_msg(history, "Invalid question, please try again.")
                 if reason:
                     history = append_history(history, None, f"({reason})")
             case ContinueGame(_, questions_remaining, Answer(answer)):
@@ -138,14 +140,18 @@ class ViewModel:
             case WonGame(questions_asked, _, Answer(answer)):
                 history = set_bot_msg(history, answer)
                 history = append_history(
-                    history, None, f"You won!\n\n(You needed {questions_asked} questions to work out the answer)"
+                    history,
+                    None,
+                    f"You won!\n\n(You needed {questions_asked} questions to work out the answer)",
                 )
                 history = append_history(history, None, "Game over")
                 enable_new_game = True
             case LostGame(_, _, Answer(answer), subject):
                 history = set_bot_msg(history, answer)
                 history = append_history(
-                    history, None, f"No questions left, I win!\n\nI was thinking of: {subject}"
+                    history,
+                    None,
+                    f"No questions left, I win!\n\nI was thinking of: {subject}",
                 )
                 history = append_history(history, None, "Game over")
                 enable_new_game = True
@@ -157,7 +163,9 @@ class ViewModel:
             gr.update(visible=enable_new_game),
         )
 
-    def on_question_input(self, user_message: str, history: HistoryT) -> tuple[TextboxT, ChatbotT]:
+    def on_question_input(
+        self, user_message: str, history: HistoryT
+    ) -> tuple[TextboxT, ChatbotT]:
         user_message = user_message.strip()
         # TODO: gradio error handling is meh
         # if not user_message:
@@ -170,22 +178,26 @@ class ViewModel:
         question_input, chatbot = self.on_load()
         return question_input, chatbot, gr.update(visible=False)
 
-    def create_view(self, auth_callback: Callable[[str, str], bool] | None) -> gr.Blocks:
+    def create_view(
+        self, auth_callback: Callable[[str, str], bool] | None
+    ) -> gr.Blocks:
         """
         Returns the gradio blocks UI object.
 
-        If `auth_callback` is given, will force Gradio to display login form. 
+        If `auth_callback` is given, will force Gradio to display login form.
         """
         if auth_callback and self.username:
             raise ValueError("Cannot provide both `auth_callback` and `username`")
 
         with gr.Blocks() as view:
-            chatbot = gr.Chatbot([
+            chatbot = gr.Chatbot(
                 [
-                    None,
-                    "🤖💭 Please be patient while I pick a subject...",
-                ],
-            ])
+                    [
+                        None,
+                        "🤖💭 Please be patient while I pick a subject...",
+                    ],
+                ]
+            )
             question_input = gr.Textbox(
                 label="Ask a yes/no question:", interactive=False
             )
@@ -203,7 +215,9 @@ class ViewModel:
                 chatbot,
                 [question_input, chatbot, new_game],
             )
-            new_game.click(self.on_new_game_click, None, [question_input, chatbot, new_game])
+            new_game.click(
+                self.on_new_game_click, None, [question_input, chatbot, new_game]
+            )
 
         view.auth = auth_callback
         view.auth_message = None

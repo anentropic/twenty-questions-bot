@@ -22,6 +22,7 @@ Does the player now know the identity of the secret subject? (Answer only yes or
 
 ParsedT = bool
 
+
 class IsDecidingQuestionOutputParser(BaseOutputParser[ParsedT]):
     def parse(self, text: str) -> ParsedT:
         logger.debug("IsDecidingQuestionOutputParser.parse: %s", text)

@@ -76,7 +76,8 @@ TurnSummaryT = InvalidQuestionSummary | ValidQuestionSummary
 @dataclass(frozen=True)
 class UserStats:
     played: int
+    unfinished: int
     wins: int
     losses: int
     overall_avg_questions: float
-    avg_questions_to_win: float
+    avg_questions_to_win: float | None

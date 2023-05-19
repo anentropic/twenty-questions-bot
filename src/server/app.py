@@ -3,35 +3,21 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import gradio as gr  # type: ignore
-from sqladmin import Admin, ModelView, BaseView, expose
+from sqladmin import Admin
 from starlette.applications import Starlette
-from starlette.responses import FileResponse
 
-from twentyqs.repository import create_tables
 from twentyqs.runner import get_view
 
-from .auth import AdminAuth, game_auth
+from .admin import (
+    DbFileView,
+    GameSessionAdmin,
+    TurnAdmin,
+    TurnLogAdmin,
+    UserAdmin,
+)
+from .auth import AdminAuth
 from .config import get_settings
-from .repository import User, init_db, get_engine
-
-
-class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.username, User.is_admin]  # type: ignore
-
-
-class DbFileView(BaseView):
-    name = "Download db file"
-    icon = "fa-database"
-
-    @expose("/db/download", methods=["GET"])
-    def download(self, request):
-        settings = get_settings()
-        path = Path(settings.db_path)
-        return FileResponse(
-            path=path,
-            media_type="application/octet-stream",
-            filename=path.name,
-        )
+from .repository import Repository
 
 
 @asynccontextmanager
@@ -40,19 +26,30 @@ async def lifespan(app: Starlette):
 
     logging.basicConfig(level=logging.getLevelName(settings.log_level))
 
-    init_db()  # SQLmodel (creates admin user)
+    db = Repository(settings.db_path)
+    db.init_db(drop=False)
 
-    create_tables(db_name=settings.db_path, drop=False)  # Peewee
-
-    admin = Admin(app=app, engine=get_engine(), authentication_backend=AdminAuth())
+    admin = Admin(
+        app=app,
+        engine=db.engine,
+        authentication_backend=AdminAuth(
+            repository=db,
+            secret_key=settings.secret_key,
+        ),
+        templates_dir=str(Path(__file__).parent / "templates" / "sqladmin"),
+    )
     admin.add_view(UserAdmin)
+    admin.add_view(GameSessionAdmin)
+    admin.add_view(TurnAdmin)
+    admin.add_view(TurnLogAdmin)
     admin.add_view(DbFileView)
 
     blocks = get_view(
+        repository=db,
         openai_model=settings.openai_model,
         simple_subject_picker=settings.simple_subject_picker,
         verbose_langchain=settings.verbose_langchain,
-        auth_callback=game_auth,
+        auth_callback=db.authenticate_player,
     )
 
     gr.mount_gradio_app(app, blocks, path="/")

@@ -1,11 +1,10 @@
-
 from langchain import LLMChain, Wikipedia
 from langchain.agents.react.base import ReActChain
-from langchain.agents.react.wiki_prompt import EXAMPLES, SUFFIX
+from langchain.agents.react.wiki_prompt import EXAMPLES  # , SUFFIX
 from langchain.chains import SequentialChain
 from langchain.chains.base import Chain
 from langchain.chains.llm_checker.prompt import (
-    CHECK_ASSERTIONS_PROMPT,
+    # CHECK_ASSERTIONS_PROMPT,
     CREATE_DRAFT_ANSWER_PROMPT,
     LIST_ASSERTIONS_PROMPT,
     REVISED_ANSWER_PROMPT,
