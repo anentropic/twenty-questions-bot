@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block head %}
+  <style>
+    h1.logo {
+      font-size: 20em;
+      text-align: center;
+      line-height: 0.1em;
+    }
+    body {
+      font-family: sans-serif;
+    }
+    p {
+      text-align: center;
+      width: 50%;
+      margin-left: 25%;
+    }
+  </style>
+{% endblock %}
+{% block body %}
+  <h1 class="logo">🤖</h1>
+  <p>
+    This is a chatbot that plays the "20 Questions" game. It was inspired by <a href="https://twitter.com/goodside/status/1643123149406367745">this tweet</a> which notes how ChatGPT is unable to play 20 Questions due to lack of private 'memory', i.e. it can only 'remember' what has been written in the chat, it can't keep a secret.
+  </p>
+  <p>
+    It is powered by OpenAI (GPT-3.5) and written in Python (<a href="https://python.langchain.com/en/latest/">Langchain</a> + <a href="https://gradio.app/">Gradio</a> UI).
+  </p>
+  <p>
+    The OpenAI API costs money, so for now there is no public demo.<br>
+    If you want to try it out, <a href="https://twitter.com/anentropic">DM me on Twitter</a> and I'll send you a link.
+  </p>
+  <p>
+    Or host your own, or run it locally!<br>
+    GitHub: <a href="https://github.com/anentropic/twenty-questions-bot/">twenty-questions-bot</a>
+  </p>
+{% endblock %}

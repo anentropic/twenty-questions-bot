@@ -6,8 +6,8 @@ import gradio as gr  # type: ignore
 from alembic.config import Config
 from alembic import command
 from starlette.applications import Starlette
-from starlette.responses import PlainTextResponse
 from starlette.routing import Route
+from starlette.templating import Jinja2Templates
 
 from twentyqs.runner import get_view
 
@@ -22,6 +22,8 @@ from .admin import (
 from .auth import AdminAuth
 from .config import get_settings
 from .repository import Repository
+
+templates = Jinja2Templates(directory=Path(__file__).parent / "templates" / "twentyqs")
 
 
 @asynccontextmanager
@@ -69,7 +71,13 @@ async def lifespan(app: Starlette):
 
 
 async def homepage(request):
-    return PlainTextResponse("Homepage")
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "title": "20 Questions Bot",
+        },
+    )
 
 
 app = Starlette(
