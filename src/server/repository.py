@@ -19,6 +19,7 @@ class Repository(BaseRepository):
                     {
                         "username": "admin",
                         "password": get_settings().admin_password,
+                        "name": "Admin",
                         "is_admin": True,
                     }
                 )

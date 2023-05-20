@@ -38,6 +38,7 @@ class User(SQLModel, table=True):
         max_length=16,
         default_factory=get_code,
     )
+    name: str
     is_admin: bool = False
 
     games: List["GameSession"] = Relationship(back_populates="user")

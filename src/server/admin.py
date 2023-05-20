@@ -34,6 +34,7 @@ class UserAdmin(ModelView, model=User):
     column_list = [
         "id",
         "username",
+        "name",
         "is_admin",
     ]
     column_formatters_detail = {
