@@ -1,0 +1,12 @@
+{% extends "details_with_pygments.html" %}
+{% block content %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body border-bottom py-3">
+        <h3 class="card-title">Game stats:</h3>
+        {{ model_view.user_stats(model) }}
+      </div>
+    </div>
+  </div>
+  {{ super() }}
+{% endblock %}

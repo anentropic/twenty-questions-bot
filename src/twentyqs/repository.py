@@ -5,7 +5,8 @@ from functools import wraps
 from datetime import datetime
 from typing import Sequence, Optional, List
 
-from sqlalchemy.future import Engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy_get_or_create import get_or_create  # type: ignore
 from sqlmodel import (
     Field,
@@ -20,7 +21,7 @@ from sqlmodel import (
 )
 
 from twentyqs.serde import serialize, deserialize
-from twentyqs.types import JsonT, UserStats
+from twentyqs.types import JsonT, ServerStats, UserStats
 
 
 class NotFound(Exception):
@@ -94,16 +95,23 @@ def with_session(f):
 
 
 class Repository:
-    engine: Engine
+    engine: Engine | AsyncEngine
 
-    def __init__(self, db_path: str):
-        self.engine = create_engine(
-            f"sqlite:///{db_path}",
-            echo=True,
-            connect_args={"check_same_thread": False},
-            json_serializer=serialize,
-            json_deserializer=deserialize,
-        )
+    def __init__(
+        self, db_path: str | None = None, engine: Engine | AsyncEngine | None = None
+    ):
+        if not db_path and not engine:
+            raise ValueError("Either db_path or engine must be given")
+        if engine:
+            self.engine = engine
+        else:
+            self.engine = create_engine(
+                f"sqlite:///{db_path}",
+                echo=True,
+                connect_args={"check_same_thread": False},
+                json_serializer=serialize,
+                json_deserializer=deserialize,
+            )
 
     def __del__(self):
         self.engine.dispose()
@@ -119,47 +127,28 @@ class Repository:
             return get_or_create(session, User, username=username)[0]
 
     @with_session
-    def get_user_stats(self, session: Session, username: str) -> UserStats:
-        """
-        Return the number of games played, won and lost for a user.
-        """
-        query = (
-            select(GameSession.user_won, func.count())  # type: ignore
-            .select_from(GameSession)
-            .join(User)
-            .where(User.username == username)
-            .group_by(GameSession.user_won)
-        )
-        result = dict(session.exec(query).all())
-        played = sum(result.values())
-        unfinished = result.get(None, 0)
-        wins = result.get(True, 0)
-        losses = result.get(False, 0)
+    def get_by_username(self, session: Session, username: str) -> User | None:
+        return session.exec(select(User).where(User.username == username)).one_or_none()
 
-        avg_query = (
-            session.query(func.count(Turn.id).label("count"))
-            .join(GameSession, GameSession.id == Turn.gamesession_id)
-            .join(User, User.id == GameSession.user_id)
-            .filter(
+    @with_session
+    def get_admin_by_username(self, session: Session, username: str) -> User | None:
+        return session.exec(
+            select(User).where(
                 User.username == username,
-                GameSession.user_won.isnot(None),  # type: ignore
+                User.is_admin.is_(True),  # type: ignore
             )
-            .group_by(GameSession.id)
-        )
-        overall_avg_questions = session.exec(
-            func.avg(avg_query.subquery().c.count)
-        ).scalar()  # type: ignore
-        avg_questions_to_win = session.exec(  # type: ignore
-            func.avg(avg_query.filter(GameSession.user_won is True).subquery().c.count)
-        ).scalar()
-        return UserStats(
-            played=played,
-            unfinished=unfinished,
-            wins=wins,
-            losses=losses,
-            overall_avg_questions=overall_avg_questions,
-            avg_questions_to_win=avg_questions_to_win,
-        )
+        ).one_or_none()
+
+    @with_session
+    def authenticate_player(
+        self, session: Session, username: str, password: str
+    ) -> bool:
+        admin = self.get_by_username(session, username)
+        if not admin:
+            return False
+        if not admin.password == password:
+            return False
+        return True
 
     @with_session
     def user_subject_history(self, session: Session, username: str) -> list[str]:
@@ -255,3 +244,95 @@ class Repository:
             return
         with session.begin_nested():
             session.bulk_insert_mappings(TurnLog, logs)
+
+    @with_session
+    def get_user_stats(self, session: Session, username: str) -> UserStats:
+        """
+        Return the number of games played, won and lost for a user.
+        """
+        query = (
+            select(GameSession.user_won, func.count())  # type: ignore
+            .select_from(GameSession)
+            .join(GameSession.user)
+            .filter(User.username == username)
+            .group_by(GameSession.user_won)
+        )
+        result = dict(session.exec(query).all())
+        played = sum(result.values())
+        unfinished = result.get(None, 0)
+        wins = result.get(True, 0)
+        losses = result.get(False, 0)
+
+        avg_query = (
+            session.query(func.count(Turn.id).label("count"))
+            .join(GameSession, GameSession.id == Turn.gamesession_id)
+            .join(User, User.id == GameSession.user_id)
+            .filter(
+                User.username == username,
+                GameSession.user_won.isnot(None),  # type: ignore
+                Turn.answer.isnot(None),  # type: ignore
+            )
+            .group_by(GameSession.id)
+        )
+        avg_questions_per_game = session.exec(
+            func.avg(avg_query.subquery().c.count)
+        ).scalar()  # type: ignore
+        avg_questions_to_win = session.exec(
+            func.avg(
+                avg_query.filter(GameSession.user_won.is_(True)).subquery().c.count  # type: ignore
+            )
+        ).scalar()
+
+        return UserStats(
+            played=played,
+            unfinished=unfinished,
+            wins=wins,
+            losses=losses,
+            avg_questions_per_game=avg_questions_per_game,
+            avg_questions_to_win=avg_questions_to_win,
+        )
+
+    @with_session
+    def get_server_stats(self, session: Session):
+        query = (
+            select(GameSession.user_won, func.count())  # type: ignore
+            .select_from(GameSession)
+            .group_by(GameSession.user_won)
+        )
+        result = dict(session.exec(query).all())
+        played = sum(result.values())
+        unfinished = result.get(None, 0)
+        wins = result.get(True, 0)
+        losses = result.get(False, 0)
+
+        avg_query = (
+            session.query(func.count(Turn.id).label("count"))
+            .join(GameSession, GameSession.id == Turn.gamesession_id)
+            .filter(
+                GameSession.user_won.isnot(None),  # type: ignore
+                Turn.answer.isnot(None),  # type: ignore
+            )
+            .group_by(GameSession.id)
+        )
+        avg_questions_per_game = session.exec(
+            func.avg(avg_query.subquery().c.count)
+        ).scalar()  # type: ignore
+        avg_questions_to_win = session.exec(
+            func.avg(
+                avg_query.filter(GameSession.user_won.is_(True)).subquery().c.count  # type: ignore
+            )
+        ).scalar()
+
+        users_count = session.exec(
+            select(func.count(User.id)).select_from(User)  # type: ignore
+        ).one()
+
+        return ServerStats(
+            users_count=users_count,
+            played=played,
+            unfinished=unfinished,
+            wins=wins,
+            losses=losses,
+            avg_questions_per_game=avg_questions_per_game,
+            avg_questions_to_win=avg_questions_to_win,
+        )

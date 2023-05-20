@@ -66,7 +66,6 @@ COPY --chown=65532:65532 \
     pyproject.toml \
     poetry.lock \
     README.md \
-    setup.cfg \
     alembic.ini \
     ./
 RUN python -m venv --copies /workspace/app/.venv

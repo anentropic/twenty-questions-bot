@@ -1,24 +1,33 @@
 from pathlib import Path
+from typing import Type
 
 from markupsafe import Markup
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter
-from sqladmin import BaseView, ModelView, expose
-from starlette.responses import FileResponse
+from sqladmin import Admin as BaseAdmin, BaseView, ModelView as BaseModelView, expose
+from sqladmin.authentication import login_required
+from starlette.requests import Request
+from starlette.responses import FileResponse, Response
 
 from twentyqs.repository import GameSession, Turn, TurnLog, User
 from twentyqs.serde import serialize
-from server.config import get_settings
+from .config import get_settings
+from .repository import Repository
 
 
 json_lexer = JsonLexer()
 html_formatter = HtmlFormatter()
+PYGMENTS_CSS = html_formatter.get_style_defs(".highlight")
+
+
+def json_formatter(val: str):
+    return Markup(highlight(val, json_lexer, html_formatter))
 
 
 def json_detail_formatter(model, attribute):
     val = serialize(getattr(model, attribute.key), indent=2)
-    return Markup(highlight(val, json_lexer, html_formatter))
+    return json_formatter(val)
 
 
 def obj_formatter(obj):
@@ -28,6 +37,37 @@ def obj_formatter(obj):
 def obj_list_detail_formatter(model, attribute):
     val = getattr(model, attribute.key)
     return [obj_formatter(obj) for obj in val]
+
+
+class Admin(BaseAdmin):
+    db: Repository
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.db = Repository(engine=self.engine)
+
+    def add_model_view(self, view: Type["ModelView"]) -> None:  # type: ignore[override]
+        view.db = self.db
+        return super().add_model_view(view)
+
+    @login_required
+    async def index(self, request: Request) -> Response:
+        stats = self.db.get_server_stats()
+        return self.templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "title": "20 Questions Bot Admin",
+                "pygments_css": PYGMENTS_CSS,
+                "server_stats": json_formatter(stats.json(indent=2)),
+            },
+        )
+
+
+class ModelView(BaseModelView):
+    db: Repository
+    pygments_css = PYGMENTS_CSS
+    details_template = "details_with_pygments.html"
 
 
 class UserAdmin(ModelView, model=User):
@@ -40,6 +80,15 @@ class UserAdmin(ModelView, model=User):
     column_formatters_detail = {
         "games": obj_list_detail_formatter,
     }
+    details_template = "user_details.html"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.db = Repository(engine=self.engine)
+
+    def user_stats(self, user):
+        stats = self.db.get_user_stats(user.username)
+        return json_formatter(stats.json(indent=2))
 
 
 class GameSessionAdmin(ModelView, model=GameSession):
@@ -59,8 +108,6 @@ class GameSessionAdmin(ModelView, model=GameSession):
         "turns": obj_list_detail_formatter,
         "llm_stats": json_detail_formatter,
     }
-    pygments_css = html_formatter.get_style_defs(".highlight")
-    details_template = "details_with_pygments.html"
 
 
 class TurnAdmin(ModelView, model=Turn):
@@ -102,8 +149,6 @@ class TurnLogAdmin(ModelView, model=TurnLog):
     column_formatters_detail = {
         "value": json_detail_formatter,
     }
-    pygments_css = html_formatter.get_style_defs(".highlight")
-    details_template = "details_with_pygments.html"
 
 
 class DbFileView(BaseView):

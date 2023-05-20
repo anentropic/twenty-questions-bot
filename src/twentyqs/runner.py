@@ -79,7 +79,7 @@ def run(
 ):
     logging.basicConfig(level=logging.getLevelName(log_level))
 
-    repo = Repository(db_path)
+    repo = Repository(db_path=db_path)
     repo.init_db(drop=clear_db)
 
     view = get_view(

@@ -3,6 +3,8 @@ from datetime import datetime
 from enum import Enum, StrEnum, auto
 from typing import NamedTuple
 
+from pydantic import BaseModel
+
 
 JsonT = dict[str, "JsonT"] | list["JsonT"] | str | float | bool | None
 
@@ -73,11 +75,26 @@ class ValidQuestionSummary(NamedTuple):
 TurnSummaryT = InvalidQuestionSummary | ValidQuestionSummary
 
 
-@dataclass(frozen=True)
-class UserStats:
+class UserStats(BaseModel):
+    class Config:
+        frozen = True
+
     played: int
     unfinished: int
     wins: int
     losses: int
-    overall_avg_questions: float
+    avg_questions_per_game: float | None
+    avg_questions_to_win: float | None
+
+
+class ServerStats(BaseModel):
+    class Config:
+        frozen = True
+
+    users_count: int
+    played: int
+    unfinished: int
+    wins: int
+    losses: int
+    avg_questions_per_game: float | None
     avg_questions_to_win: float | None

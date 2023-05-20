@@ -1,4 +1,18 @@
 {% extends "layout.html" %}
+{% block head %}
+  {{ super() }}
+  <style>
+  {{ pygments_css }}
+  </style>
+{% endblock %}
 {% block content %}
-<h1>Twenty Questions Bot</h1>
+<div class="col-12">
+  <div class="card">
+    <div class="card-body border-bottom py-3">
+      <h3 class="card-title">Server stats:</h3>
+      {{ server_stats }}
+    </div>
+  </div>
+</div>
+{{ super() }}
 {% endblock %}

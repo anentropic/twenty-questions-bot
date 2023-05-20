@@ -86,6 +86,12 @@ def get_bot_msg(history: HistoryT) -> str | None:
     return history[-1][1]
 
 
+def parse_auth(urlpath: str) -> tuple[str, str]:
+    segment = urlpath.rstrip("/").rsplit("/", 1)[-1]
+    username, password = segment.split(":")
+    return username, password
+
+
 class ViewModel:
     lock: Lock
     controller: GameController
@@ -98,9 +104,17 @@ class ViewModel:
     @with_lock
     def on_load(self, request: gr.Request) -> tuple[TextboxT, ChatbotT]:
         """Init a new game."""
-        username = request.username or self.username
-        if not username:
-            raise ValueError("No username provided")
+        if self.username:
+            username = self.username
+        else:
+            # this is a hack - gradio JS uses the unsubstituted mount path
+            # is its root url, so the request.url is not the real url
+            # ...but we can get the real base url from the referer header
+            username, password = parse_auth(request.request.headers["referer"])
+            valid = self.controller.db.authenticate_player(username, password)
+            if not valid:
+                raise ValueError("Invalid username/passcode")
+
         begun = self.controller.start_game(username)
         history = [
             [

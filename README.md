@@ -64,7 +64,8 @@ ADMIN_PASSWORD=****** poetry run uvicorn server.app:app
   - maybe via: https://gradio.app/docs/#flagging
 - https://promptlayer.com/ logging
   - https://api.openai.com/dashboard/billing/usage can be accessed via HTTP basic auth using username + API key
-  - see also https://api.openai.com/dashboard/billing/credit_grants
+  - see also https://api.openai.com/dashboard/billing/credit_grants 😞 "must be made with a session key"
+  - OpenAI billing is aligned to month start
 - try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
   - https://github.com/kagisearch/pyllms
   - https://huggingface.co/liujch1998/vera might be handy, it did well at recognising yes/no questions when I tried it (it is a 4.7B param T5 model)

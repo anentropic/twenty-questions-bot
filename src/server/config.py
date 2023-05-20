@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     simple_subject_picker: bool = True
     db_path: str = "twentyqs.db"
     alembic_config: str = "alembic.ini"
+    migrate_db: bool = True
+    # require_login: bool = True
     log_level: str = "INFO"
     verbose_langchain: bool = False
     admin_password: str
