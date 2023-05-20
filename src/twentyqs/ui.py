@@ -119,14 +119,15 @@ class ViewModel:
         history = [
             [
                 None,
-                "Ok, I've picked a subject.\n"
+                "Ok, I've picked a subject.<br>"
                 f"Now you have {begun.max_questions} questions to work out what it is!",
             ],
             [
                 None,
-                "(I will do my best to answer honestly, but please bear in mind I "
-                "am only a 'Large Language Model' and I don't know about anything "
-                "that has happened after September 2021...)",
+                "I will do my best to answer correctly, but please bear in mind I "
+                "am only an AI language model...<br>"
+                "• I don't know about anything that has happened after approx Sept 2021<br>"
+                "• I don't always think exactly like a human would",
             ],
         ]
         return gr.update(interactive=True, visible=True), history
