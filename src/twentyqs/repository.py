@@ -45,7 +45,7 @@ class User(SQLModel, table=True):
 
 class GameSession(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="user.id", index=True)
     user: User = Relationship(back_populates="games")
     started_at: datetime = Field(default_factory=datetime.now)
     finished_at: Optional[datetime]
@@ -58,7 +58,7 @@ class GameSession(SQLModel, table=True):
 
 class Turn(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    gamesession_id: int = Field(foreign_key="gamesession.id")
+    gamesession_id: int = Field(foreign_key="gamesession.id", index=True)
     gamesession: GameSession = Relationship(back_populates="turns")
     started_at: datetime = Field(default_factory=datetime.now)
     finished_at: Optional[datetime]
@@ -70,7 +70,7 @@ class Turn(SQLModel, table=True):
 
 class TurnLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    turn_id: int = Field(foreign_key="turn.id")
+    turn_id: int = Field(foreign_key="turn.id", index=True)
     turn: Turn = Relationship(back_populates="logs")
     timestamp: datetime = Field(default_factory=datetime.now)
     key: str
