@@ -80,6 +80,9 @@ class UserAdmin(ModelView, model=User):
     column_formatters_detail = {
         "games": obj_list_detail_formatter,
     }
+    form_excluded_columns = [
+        "games",
+    ]
     details_template = "user_details.html"
 
     def __init__(self, *args, **kwargs) -> None:
