@@ -53,6 +53,10 @@ def get_view(
     username: str | None = None,
     auth_callback: Callable[[str, str], bool] | None = None,
 ) -> gr.Blocks:
+    """
+    `username` if provided will bypass auth and just get-or-create that user.
+    `auth_callback` is to enable Gradio's login UI.
+    """
     llm = OpenAI(temperature=0, model_name=openai_model)
     answerer = AnswerBot(
         llm=llm,
@@ -62,6 +66,7 @@ def get_view(
     controller = GameController(
         repository=repository,
         answerer=answerer,
+        require_auth=username is None,
         stats_context_factory=openai_stats_context,
     )
     view_model = ViewModel(controller, username=username)
@@ -77,6 +82,9 @@ def run(
     verbose_langchain: bool,
     log_level: str,
 ):
+    """
+    Run the Gradio app directly.
+    """
     logging.basicConfig(level=logging.getLevelName(log_level))
 
     repo = Repository(db_path=db_path)

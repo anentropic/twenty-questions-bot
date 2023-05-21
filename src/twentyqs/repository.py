@@ -124,7 +124,14 @@ class Repository:
     @with_session
     def get_or_create_user(self, session: Session, username: str) -> User:
         with session.begin_nested():
-            return get_or_create(session, User, username=username)[0]
+            name = username.capitalize()
+            user, _ = get_or_create(
+                session,
+                User,
+                username=username,
+                defaults={"name": name},
+            )
+            return user
 
     @with_session
     def get_by_username(self, session: Session, username: str) -> User | None:
@@ -143,15 +150,26 @@ class Repository:
     def authenticate_player(
         self, session: Session, username: str, password: str
     ) -> bool:
-        admin = self.get_by_username(session, username)
-        if not admin:
+        user = self.get_by_username(session, username)
+        if not user:
             return False
-        if not admin.password == password:
+        if not user.password == password:
             return False
         return True
 
     @with_session
-    def user_subject_history(self, session: Session, username: str) -> list[str]:
+    def authenticated_player(
+        self, session: Session, username: str, password: str
+    ) -> User | None:
+        user = self.get_by_username(session, username)
+        if not user:
+            return None
+        if not user.password == password:
+            return None
+        return user
+
+    @with_session
+    def get_user_subject_history(self, session: Session, username: str) -> list[str]:
         """
         Return the history of subjects that a user has already played.
         """

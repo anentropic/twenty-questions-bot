@@ -11,6 +11,7 @@ from twentyqs.types import (
     TurnResult,
     TurnSummaryT,
     InvalidQuestionSummary,
+    UserMeta,
     ValidQuestionSummary,
 )
 
@@ -69,8 +70,13 @@ class LostGame:
 TurnOutcome = InvalidQuestion | ContinueGame | WonGame | LostGame
 
 
+class AuthError(Exception):
+    pass
+
+
 class GameController:
     answerer: AnswerBot
+    require_auth: bool
     stats_context_factory: StatsContextManagerFactory | None
     _stats_context_mgr: StatsContextManager | None = None
     game_stats_context: StatsContext | None = None
@@ -81,19 +87,43 @@ class GameController:
         self,
         repository: Repository,
         answerer: AnswerBot,
+        require_auth: bool = True,
         stats_context_factory: StatsContextManagerFactory | None = None,
     ):
         self.db = repository
         self.answerer = answerer
+        self.require_auth = require_auth
         self.stats_context_factory = stats_context_factory
 
-    def start_game(self, username: str) -> GameBegun:
+    def set_user(self, username: str, password: str | None) -> None:
+        if self.require_auth:
+            if password is None:
+                raise AuthError("Authentication required")
+            user = self.db.authenticated_player(username, password)
+            if not user:
+                raise AuthError("Invalid username/passcode")
+        else:
+            user = self.db.get_or_create_user(username)
+        self.user = user
+
+    def get_user_meta(self) -> UserMeta:
+        if not self.user:
+            raise RuntimeError("GameController: No user set")
+
+        return UserMeta(
+            username=self.user.username,
+            name=self.user.name,
+            stats=self.db.get_user_stats(self.user.username),
+        )
+
+    def start_game(self) -> GameBegun:
         """
         Start a new game.
         """
-        user = self.db.get_or_create_user(username)
+        if not self.user:
+            raise RuntimeError("GameController: No user set")
 
-        subject_history = self.db.user_subject_history(user.username)
+        subject_history = self.db.get_user_subject_history(self.user.username)
         self.answerer.history = subject_history
 
         if self.stats_context_factory:
@@ -101,7 +131,7 @@ class GameController:
             self.game_stats_context = mgr.__enter__()
 
         self.answerer.set_subject()
-        self.session = self.db.start_game(user=user, subject=self.answerer.subject)
+        self.session = self.db.start_game(user=self.user, subject=self.answerer.subject)
         return GameBegun(
             max_questions=self.answerer.max_questions,
         )

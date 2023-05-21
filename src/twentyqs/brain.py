@@ -236,7 +236,7 @@ class AnswerBot:
         )
 
         # TODO: maybe this should just return ANSWERED and the
-        # q_count logic can move to the controller
+        # q_count logic can move to the controller (max_questions too)
         if is_deciding_question:
             result = TurnResult.WIN
         elif self._q_count == self.max_questions:

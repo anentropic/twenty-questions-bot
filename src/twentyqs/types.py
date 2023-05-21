@@ -98,3 +98,9 @@ class ServerStats(BaseModel):
     losses: int
     avg_questions_per_game: float | None
     avg_questions_to_win: float | None
+
+
+class UserMeta(BaseModel):
+    username: str
+    name: str
+    stats: UserStats
