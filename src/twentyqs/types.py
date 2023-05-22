@@ -83,7 +83,7 @@ class UserStats(BaseModel):
     unfinished: int
     wins: int
     losses: int
-    avg_questions_per_game: float | None
+    avg_invalid_questions_per_game: float | None
     avg_questions_to_win: float | None
 
 
@@ -96,7 +96,7 @@ class ServerStats(BaseModel):
     unfinished: int
     wins: int
     losses: int
-    avg_questions_per_game: float | None
+    avg_invalid_questions_per_game: float | None
     avg_questions_to_win: float | None
 
 

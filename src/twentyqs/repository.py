@@ -285,19 +285,27 @@ class Repository:
             session.query(func.count(Turn.id).label("count"))
             .join(GameSession, GameSession.id == Turn.gamesession_id)
             .join(User, User.id == GameSession.user_id)
-            .filter(
-                User.username == username,
-                GameSession.user_won.isnot(None),  # type: ignore
-                Turn.answer.isnot(None),  # type: ignore
-            )
+            .filter(User.username == username)
             .group_by(GameSession.id)
         )
-        avg_questions_per_game = session.exec(
-            func.avg(avg_query.subquery().c.count)
-        ).scalar()  # type: ignore
+        avg_invalid_questions_per_game = session.exec(
+            func.avg(
+                avg_query.filter(
+                    GameSession.user_won.isnot(None),  # type: ignore
+                    Turn.answer.is_(None),  # type: ignore
+                )
+                .subquery()
+                .c.count
+            )
+        ).scalar()
         avg_questions_to_win = session.exec(
             func.avg(
-                avg_query.filter(GameSession.user_won.is_(True)).subquery().c.count  # type: ignore
+                avg_query.filter(
+                    GameSession.user_won.is_(True),  # type: ignore
+                    Turn.answer.isnot(None),  # type: ignore
+                )
+                .subquery()
+                .c.count  # type: ignore
             )
         ).scalar()
 
@@ -306,7 +314,7 @@ class Repository:
             unfinished=unfinished,
             wins=wins,
             losses=losses,
-            avg_questions_per_game=avg_questions_per_game,
+            avg_invalid_questions_per_game=avg_invalid_questions_per_game,
             avg_questions_to_win=avg_questions_to_win,
         )
 
@@ -326,18 +334,26 @@ class Repository:
         avg_query = (
             session.query(func.count(Turn.id).label("count"))
             .join(GameSession, GameSession.id == Turn.gamesession_id)
-            .filter(
-                GameSession.user_won.isnot(None),  # type: ignore
-                Turn.answer.isnot(None),  # type: ignore
-            )
             .group_by(GameSession.id)
         )
-        avg_questions_per_game = session.exec(
-            func.avg(avg_query.subquery().c.count)
-        ).scalar()  # type: ignore
+        avg_invalid_questions_per_game = session.exec(
+            func.avg(
+                avg_query.filter(
+                    GameSession.user_won.isnot(None),  # type: ignore
+                    Turn.answer.is_(None),  # type: ignore
+                )
+                .subquery()
+                .c.count
+            )
+        ).scalar()
         avg_questions_to_win = session.exec(
             func.avg(
-                avg_query.filter(GameSession.user_won.is_(True)).subquery().c.count  # type: ignore
+                avg_query.filter(
+                    GameSession.user_won.is_(True),  # type: ignore
+                    Turn.answer.isnot(None),  # type: ignore
+                )
+                .subquery()
+                .c.count  # type: ignore
             )
         ).scalar()
 
@@ -351,6 +367,6 @@ class Repository:
             unfinished=unfinished,
             wins=wins,
             losses=losses,
-            avg_questions_per_game=avg_questions_per_game,
+            avg_invalid_questions_per_game=avg_invalid_questions_per_game,
             avg_questions_to_win=avg_questions_to_win,
         )
