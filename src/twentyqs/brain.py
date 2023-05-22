@@ -29,7 +29,6 @@ from twentyqs.chains.pick_subject import (
     SIMPLE_CATEGORY,
 )
 from twentyqs.types import (
-    TurnResult,
     TurnBegin,
     TurnSummaryT,
     TurnValidate,
@@ -50,8 +49,6 @@ class AnswerBot:
 
     llm: BaseLanguageModel
 
-    max_questions: int = 20
-    _q_count: int = 0
     _subject: str
     category: str
     history: list[str]
@@ -110,17 +107,6 @@ class AnswerBot:
         )
 
     @property
-    def questions_asked(self) -> int:
-        """
-        Valid questions asked so far.
-        """
-        return self._q_count
-
-    @property
-    def questions_remaining(self) -> int:
-        return self.max_questions - self._q_count
-
-    @property
     def subject(self) -> str:
         if self._subject is None:
             self.set_subject()
@@ -129,7 +115,6 @@ class AnswerBot:
     def set_subject(self) -> None:
         self._subject = self.pick_subject()
         self.history.append(self._subject)
-        self._q_count = 0
 
     def pick_subject(self) -> str:
         """
@@ -171,8 +156,6 @@ class AnswerBot:
         Play a turn of the game.
         """
         turn_begin = TurnBegin(
-            questions_asked=self.questions_asked,
-            questions_remaining=self.questions_remaining,
             question=question,
         )
 
@@ -194,8 +177,6 @@ class AnswerBot:
                 validate=turn_validate,
             )
 
-        self._q_count += 1
-
         # answer question
         answer, justification = cast(
             AnswerParsedT,
@@ -213,8 +194,6 @@ class AnswerBot:
             warnings.warn(f"Unexpected answer: {answer}")
 
         turn_answer = TurnAnswer(
-            questions_asked=self.questions_asked,
-            questions_remaining=self.questions_remaining,
             answer=answer,
             justification=justification,
         )
@@ -235,17 +214,7 @@ class AnswerBot:
             is_deciding_q=is_deciding_question,
         )
 
-        # TODO: maybe this should just return ANSWERED and the
-        # q_count logic can move to the controller (max_questions too)
-        if is_deciding_question:
-            result = TurnResult.WIN
-        elif self._q_count == self.max_questions:
-            result = TurnResult.LOSE
-        else:
-            result = TurnResult.CONTINUE
-
         return ValidQuestionSummary(
-            result=result,
             begin=turn_begin,
             validate=turn_validate,
             answer=turn_answer,

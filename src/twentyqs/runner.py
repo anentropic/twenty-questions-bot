@@ -52,6 +52,7 @@ def get_view(
     verbose_langchain: bool,
     username: str | None = None,
     auth_callback: Callable[[str, str], bool] | None = None,
+    max_questions: int = 20,
 ) -> gr.Blocks:
     """
     `username` if provided will bypass auth and just get-or-create that user.
@@ -67,6 +68,7 @@ def get_view(
         repository=repository,
         answerer=answerer,
         require_auth=username is None,
+        max_questions=max_questions,
         stats_context_factory=openai_stats_context,
     )
     view_model = ViewModel(controller, username=username)
@@ -81,6 +83,7 @@ def run(
     simple_subject_picker: bool,
     verbose_langchain: bool,
     log_level: str,
+    max_questions: int,
 ):
     """
     Run the Gradio app directly.
@@ -96,5 +99,6 @@ def run(
         simple_subject_picker=simple_subject_picker,
         verbose_langchain=verbose_langchain,
         username=username,
+        max_questions=max_questions,
     )
     view.launch(show_api=False)

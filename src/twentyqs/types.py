@@ -31,8 +31,6 @@ class TurnResult(Enum):
 
 @dataclass(frozen=True)
 class TurnBegin:
-    questions_asked: int  # (valid questions only)
-    questions_remaining: int
     question: str
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -46,8 +44,6 @@ class TurnValidate:
 
 @dataclass(frozen=True)
 class TurnAnswer:
-    questions_asked: int  # (valid questions only)
-    questions_remaining: int
     answer: str
     justification: str | None
     timestamp: datetime = field(default_factory=datetime.now)
@@ -65,7 +61,6 @@ class InvalidQuestionSummary(NamedTuple):
 
 
 class ValidQuestionSummary(NamedTuple):
-    result: TurnResult
     begin: TurnBegin
     validate: TurnValidate
     answer: TurnAnswer

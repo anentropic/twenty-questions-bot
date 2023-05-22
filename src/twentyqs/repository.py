@@ -66,6 +66,9 @@ class Turn(SQLModel, table=True):
     finished_at: Optional[datetime]
     question: Optional[str]
     answer: Optional[str]
+    # initial state:
+    questions_asked: Optional[int]  # (valid questions only)
+    questions_remaining: Optional[int]
 
     logs: List["TurnLog"] = Relationship(back_populates="turn")
 
@@ -219,12 +222,24 @@ class Repository:
             warnings.warn(f"Updated {updated} rows for GameSession id:{game_id}")
 
     @with_session
-    def start_turn(self, session: Session, game: GameSession, question: str) -> Turn:
+    def start_turn(
+        self,
+        session: Session,
+        game: GameSession,
+        question: str,
+        questions_asked: int,
+        questions_remaining: int,
+    ) -> Turn:
         """
         Start a new turn for a game.
         """
         with session.begin_nested():
-            turn = Turn(gamesession=game, question=question)
+            turn = Turn(
+                gamesession=game,
+                question=question,
+                questions_asked=questions_asked,
+                questions_remaining=questions_remaining,
+            )
             session.add(turn)
         return turn
 

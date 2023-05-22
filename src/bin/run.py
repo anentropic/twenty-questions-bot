@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--db-path", type=str, default="twentyqs.db")
     parser.add_argument("--clear-db", action="store_true")
     parser.add_argument("--log-level", type=str, default="INFO")
+    parser.add_argument("--max-questions", type=int, default=20)
     args = parser.parse_args()
 
     run(
@@ -34,4 +35,5 @@ if __name__ == "__main__":
         simple_subject_picker=args.simple_subject_picker,
         verbose_langchain=args.verbose_langchain,
         log_level=args.log_level,
+        max_questions=args.max_questions,
     )

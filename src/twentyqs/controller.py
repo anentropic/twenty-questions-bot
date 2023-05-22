@@ -8,7 +8,7 @@ from twentyqs.repository import Repository, User, GameSession, Turn
 from twentyqs.types import (
     LogKey,
     JsonT,
-    TurnResult,
+    TurnEndGame,
     TurnSummaryT,
     InvalidQuestionSummary,
     UserMeta,
@@ -82,17 +82,21 @@ class GameController:
     game_stats_context: StatsContext | None = None
     user: User
     session: GameSession | None = None
+    max_questions: int
+    _q_count: int = 0
 
     def __init__(
         self,
         repository: Repository,
         answerer: AnswerBot,
         require_auth: bool = True,
+        max_questions: int = 20,
         stats_context_factory: StatsContextManagerFactory | None = None,
     ):
         self.db = repository
         self.answerer = answerer
         self.require_auth = require_auth
+        self.max_questions = max_questions
         self.stats_context_factory = stats_context_factory
 
     def set_user(self, username: str, password: str | None) -> None:
@@ -116,6 +120,17 @@ class GameController:
             stats=self.db.get_user_stats(self.user.username),
         )
 
+    @property
+    def questions_asked(self) -> int:
+        """
+        Valid questions asked so far.
+        """
+        return self._q_count
+
+    @property
+    def questions_remaining(self) -> int:
+        return self.max_questions - self._q_count
+
     def start_game(self) -> GameBegun:
         """
         Start a new game.
@@ -131,9 +146,10 @@ class GameController:
             self.game_stats_context = mgr.__enter__()
 
         self.answerer.set_subject()
+        self._q_count = 0
         self.session = self.db.start_game(user=self.user, subject=self.answerer.subject)
         return GameBegun(
-            max_questions=self.answerer.max_questions,
+            max_questions=self.max_questions,
         )
 
     def finish_game(self, user_won: bool) -> None:
@@ -187,7 +203,12 @@ class GameController:
         Take a turn in a game.
         """
         assert self.session
-        turn = self.db.start_turn(game=self.session, question=question)
+        turn = self.db.start_turn(
+            game=self.session,
+            question=question,
+            questions_asked=self.questions_asked,
+            questions_remaining=self.questions_remaining,
+        )
 
         summary = self.answerer.process_turn(question)
         self.log_turn(turn=turn, summary=summary)
@@ -202,27 +223,30 @@ class GameController:
                 outcome = InvalidQuestion(
                     question=begin.question, reason=validate.reason or ""
                 )
-            case ValidQuestionSummary(TurnResult.CONTINUE, begin, _, answer, _):
-                outcome = ContinueGame(
-                    questions_asked=answer.questions_asked,
-                    questions_remaining=answer.questions_remaining,
-                    answer=answer.answer,
-                )
-            case ValidQuestionSummary(TurnResult.WIN, begin, _, answer, _):
+            case ValidQuestionSummary(_, _, answer, TurnEndGame(False, _)):
+                self._q_count += 1
+                if self.questions_remaining == 0:
+                    outcome = LostGame(
+                        questions_asked=self.questions_asked,
+                        questions_remaining=self.questions_remaining,
+                        answer=answer.answer,
+                        subject=self.session.subject,
+                    )
+                    self.finish_game(False)
+                else:
+                    outcome = ContinueGame(
+                        questions_asked=self.questions_asked,
+                        questions_remaining=self.questions_remaining,
+                        answer=answer.answer,
+                    )
+            case ValidQuestionSummary(_, _, answer, TurnEndGame(True, _)):
+                self._q_count += 1
                 outcome = WonGame(
-                    questions_asked=answer.questions_asked,
-                    questions_remaining=answer.questions_remaining,
+                    questions_asked=self.questions_asked,
+                    questions_remaining=self.questions_remaining,
                     answer=answer.answer,
                 )
                 self.finish_game(True)
-            case ValidQuestionSummary(TurnResult.LOSE, begin, _, answer, _):
-                outcome = LostGame(
-                    questions_asked=answer.questions_asked,
-                    questions_remaining=answer.questions_remaining,
-                    answer=answer.answer,
-                    subject=self.session.subject,
-                )
-                self.finish_game(False)
             case _:
                 raise ValueError(f"Unexpected turn result: {summary!r}")
 
