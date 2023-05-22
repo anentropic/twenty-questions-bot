@@ -131,7 +131,7 @@ class ViewModel:
             append_history(
                 history,
                 bot_message=(
-                    f"👋 Hi {user_meta.name},<br>"
+                    f"👋 Hi {user_meta.name},\n"
                     "Let's play a game: I will think of a subject, you have to guess what it is."
                 ),
             )
@@ -139,17 +139,17 @@ class ViewModel:
                 history,
                 bot_message=(
                     "I will do my best to answer correctly, but please bear in mind I "
-                    "am only an AI language model...<br>"
-                    "• I don't know about anything that has happened after approx Sept 2021<br>"
-                    "• I don't always think exactly like a human would<br>"
-                    "• Your questions and my answers are all recorded, so I can be taught to play better in future"
+                    "am only an AI language model...\n\n"
+                    "- I don't know about anything that has happened after approx Sept 2021\n"
+                    "- I don't always think exactly like a human would\n"
+                    "- Your questions and my answers are all recorded, so I can be taught to play better in future"
                 ),
             )
         append_history(
             history,
             bot_message=(
-                f"You have won {user_meta.stats.wins} {games_label(user_meta.stats.wins)} and "
-                f"lost {user_meta.stats.losses} {games_label(user_meta.stats.losses)} so far, "
+                f"You have won **{user_meta.stats.wins}** {games_label(user_meta.stats.wins)} and "
+                f"lost **{user_meta.stats.losses}** {games_label(user_meta.stats.losses)} so far, "
                 "let's see how you do this time 😉"
             ),
         )
@@ -165,10 +165,11 @@ class ViewModel:
     ) -> tuple[TextboxT, ChatbotT]:
         logger.info("ViewModel.start_game")
         begun = self.controller.start_game()
+        del history[-1]
         set_bot_msg(
             history,
             (
-                "💡Ok, I've picked a subject.<br>"
+                "💡Ok, I've picked a subject.\n"
                 f"Now you have {begun.max_questions} questions to work out what it is!"
             ),
         )
