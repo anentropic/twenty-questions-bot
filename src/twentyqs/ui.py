@@ -2,7 +2,7 @@ import logging
 from collections.abc import Callable
 from functools import wraps
 from threading import Lock
-from typing import Iterator, ParamSpec, Protocol, TypeVar, cast
+from typing import ParamSpec, Protocol, TypeVar, cast
 
 import gradio as gr  # type: ignore
 
@@ -30,6 +30,8 @@ ChatbotT = dict | HistoryT
 T = TypeVar("T")
 P = ParamSpec("P")
 
+LOADED = "loaded"
+
 
 class Lockable(Protocol):
     lock: Lock
@@ -46,26 +48,6 @@ def with_lock(f: Callable[P, T]) -> Callable[P, T]:
         self.lock.acquire()
         try:
             return f(*args, **kwargs)
-        except Exception as e:
-            raise e
-        finally:
-            self.lock.release()
-
-    return wrapper
-
-
-def with_lock_gen(f: Callable[P, Iterator[T]]) -> Callable[P, Iterator[T]]:
-    """
-    Decorator (for instance methods) to acquire a lock around the method call,
-    where the method is a generator function.
-    """
-
-    @wraps(f)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Iterator[T]:
-        self = cast(Lockable, args[0])
-        self.lock.acquire()
-        try:
-            yield from f(*args, **kwargs)
         except Exception as e:
             raise e
         finally:
@@ -125,8 +107,10 @@ class ViewModel:
         self.username = username
         self.first_run = True
 
-    def on_load(self, request: gr.Request) -> Iterator[tuple[TextboxT, ChatbotT]]:
+    @with_lock
+    def on_load(self, request: gr.Request) -> LabelT:
         """Init a new game."""
+        logger.info("ViewModel.on_load")
         if self.username:
             username = self.username
             password = None
@@ -136,11 +120,11 @@ class ViewModel:
             # ...but we can get the real base url from the referer header
             username, password = parse_auth(request.request.headers["referer"])
         self.controller.set_user(username, password)
-        yield from self.new_game()
+        return gr.update(value=LOADED, visible=False)
 
-    @with_lock_gen
-    def new_game(self) -> Iterator[tuple[TextboxT, ChatbotT]]:
-        logger.info("ViewModel.after_load")
+    @with_lock
+    def intro(self) -> tuple[TextboxT, ChatbotT]:
+        logger.info("ViewModel.intro")
         user_meta = self.controller.get_user_meta()
         history: HistoryT = []
         if self.first_run:
@@ -172,9 +156,14 @@ class ViewModel:
         append_history(
             history, bot_message="🤖💭 Please be patient while I pick a subject..."
         )
-        logger.info("ViewModel.after_load: yield 1")
-        yield None, history
+        append_history(history)  # empty message to trigger 'loading' animation
+        return None, history
 
+    @with_lock
+    def start_game(
+        self, history: HistoryT, evt: gr.EventData
+    ) -> tuple[TextboxT, ChatbotT]:
+        logger.info("ViewModel.start_game")
         begun = self.controller.start_game()
         set_bot_msg(
             history,
@@ -184,8 +173,7 @@ class ViewModel:
             ),
         )
         self.first_run = False
-        logger.info("ViewModel.after_load: yield 2")
-        yield gr.update(interactive=True, visible=True), history
+        return gr.update(interactive=True, visible=True), history
 
     @with_lock
     def after_question_input(
@@ -245,8 +233,7 @@ class ViewModel:
         return gr.update(value="", interactive=False), history
 
     def on_new_game_click(self):
-        for textbox, chatbot in self.new_game():
-            yield textbox, chatbot, gr.update(visible=False)
+        return gr.update(visible=False)
 
     def create_view(
         self, auth_callback: Callable[[str, str], bool] | None
@@ -266,7 +253,13 @@ class ViewModel:
             )
             new_game = gr.Button("New game", visible=False)
 
-            view.load(self.on_load, None, [question_input, chatbot])
+            # State obj doesn't have change events, so we use a hidden Textbox
+            loaded_sentinel = gr.Textbox("", visible=False)
+            loaded_sentinel.change(self.intro, None, [question_input, chatbot]).success(
+                self.start_game, [chatbot], [question_input, chatbot]
+            )
+
+            view.load(self.on_load, None, [loaded_sentinel])
 
             question_input.submit(
                 self.on_question_input,
@@ -278,11 +271,11 @@ class ViewModel:
                 [chatbot],
                 [question_input, chatbot, new_game],
             )
-            new_game.click(
-                self.on_new_game_click, None, [question_input, chatbot, new_game]
-            )
+            new_game.click(self.on_new_game_click, None, [new_game]).success(
+                self.intro, None, [question_input, chatbot]
+            ).success(self.start_game, [chatbot], [question_input, chatbot])
 
-        view.queue(concurrency_count=1)
+        # view.queue()
 
         view.auth = auth_callback
         view.auth_message = None

@@ -110,7 +110,7 @@ class Repository:
         else:
             self.engine = create_engine(
                 f"sqlite:///{db_path}",
-                echo=True,
+                # echo=True,
                 connect_args={"check_same_thread": False},
                 json_serializer=serialize,
                 json_deserializer=deserialize,

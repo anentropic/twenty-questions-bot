@@ -17,12 +17,14 @@ logger = logging.getLogger(__name__)
 # - ...to be seen whether the themed category prompts totally overcome that
 template = """You are an AI about to play a game of "20 Questions" with a human.
 
-Before we start the game we need to prepare a lists of possible subjects. The human will be asking questions trying to guess the identity of the subject. So the subjects should all be well-known to most people.
+Before we start the game we need to prepare a list of possible subjects. The subjects should all be well-known to most people.
 
-The following subjects have already been used and should not appear in the lists:
+The following subjects have already been used and should not appear in your answer:
 {seen}
 
-Begin! Remember, each item in the list should be unique with no repeats.
+Do not use a variation on a subject that has already been used.
+
+Begin! Remember, each item in the list should be unique with no repeats. 
 
 {num} {category}:
 """
@@ -75,3 +77,9 @@ class PickSubjectChain(LLMChain):
         input_variables=["num", "category", "seen"],
         output_parser=NumberedListParser(),
     )
+
+    def prep_prompts(self, input_list):
+        for inputs in input_list:
+            if "seen" in inputs and not isinstance(inputs["seen"], str):
+                inputs["seen"] = "\n".join(inputs["seen"])
+        return super().prep_prompts(input_list)
