@@ -12,7 +12,7 @@ from starlette.responses import FileResponse, Response
 
 from twentyqs.repository import GameSession, Turn, TurnLog, User
 from twentyqs.serde import serialize
-from .config import get_settings
+from .config import settings
 from .repository import Repository
 
 
@@ -160,7 +160,6 @@ class DbFileView(BaseView):
 
     @expose("/db/download", methods=["GET"])
     def download(self, request):
-        settings = get_settings()
         path = Path(settings.db_path)
         return FileResponse(
             path=path,

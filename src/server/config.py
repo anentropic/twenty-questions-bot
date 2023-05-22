@@ -1,5 +1,4 @@
 import secrets
-from functools import lru_cache
 
 from pydantic import BaseSettings, Field
 
@@ -17,6 +16,4 @@ class Settings(BaseSettings):
     secret_key: str = Field(default_factory=secrets.token_urlsafe)
 
 
-@lru_cache()
-def get_settings() -> Settings:
-    return Settings()
+settings = Settings()

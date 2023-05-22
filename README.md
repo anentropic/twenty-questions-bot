@@ -43,6 +43,10 @@ The game is password protected to avoid the general public burning through your 
 
 Server is initalised with an `admin` user, with your password. You can use this to play the game, or go to `http://127.0.0.1:8000/admin/` and login, you can then create non-admin user accounts that can be used to play the game.
 
+#### Building locally
+
+To build the Docker image locally you need to set the `ARCHPREFIX` build arg, e.g. `--build-arg ARCHPREFIX=aarch64` for Apple Silicon macs, or `x86_64` for Intel.
+
 ### Non-Docker local web app
 
 `export OPENAI_API_KEY=*****` env var with your key, then:
@@ -59,6 +63,7 @@ ADMIN_PASSWORD=****** poetry run uvicorn server.app:app
 - make prompts more robust
 - add self-reflection and lookup for post-2021 facts
 - If you play lots of games the subject history will eventually overflow the prompt. Also the model tends to pick same subjects (hence need for history)... might be better to pre-gen an extensive dictionary of subjects by whatever means
+  - additionally, the list of 
 - "give me a clue" option on the last question? (in case the LLM chose something ambiguous and is being picky)
 - feedback loop: rating system for LLM responses which lead to bad games, can form test data for future improvement
   - maybe via: https://gradio.app/docs/#flagging

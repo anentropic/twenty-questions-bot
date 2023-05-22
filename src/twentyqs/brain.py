@@ -138,6 +138,8 @@ class AnswerBot:
                 )
             )
             candidates = []
+            # TODO: instead of multiple LLM calls why not just do another random
+            # choice on Python side first?
             for theme in category:
                 candidates.extend(
                     cast(
