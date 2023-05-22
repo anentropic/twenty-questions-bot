@@ -247,6 +247,8 @@ class ViewModel:
             raise ValueError("Cannot provide both `auth_callback` and `username`")
 
         with gr.Blocks() as view:
+            gr.HTML('<h1 style="font-family: monospace">🤖 Twenty Questions Bot</h1>')
+
             chatbot = gr.Chatbot()
             question_input = gr.Textbox(
                 label="Ask a yes/no question:", interactive=False, visible=False
