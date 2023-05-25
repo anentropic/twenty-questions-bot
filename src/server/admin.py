@@ -120,7 +120,7 @@ class TurnAdmin(ModelView, model=Turn):
         "id",
         "gamesession_id",
         "started_at",
-        "finished_at",
+        "questions_remaining",
         "question",
     ]
     column_details_exclude_list = [
