@@ -114,6 +114,7 @@ class AnswerBot:
 
     def set_subject(self) -> None:
         self._subject = self.pick_subject()
+        # TODO: history should be per-category prompt? could narrow it a bit
         self.history.append(self._subject)
 
     def pick_subject(self) -> str:
@@ -137,20 +138,15 @@ class AnswerBot:
                     PLACE_CATEGORIES,
                 )
             )
-            candidates = []
-            # TODO: instead of multiple LLM calls why not just do another random
-            # choice on Python side first?
-            for theme in category:
-                candidates.extend(
-                    cast(
-                        PickSubjectParsedT,
-                        self.pick_subject_chain.predict_and_parse(
-                            num=self.num_candidates,
-                            category=theme,
-                            seen=self.history,
-                        ),
-                    )
-                )
+            themed_category = random.choice(category)
+            candidates = cast(
+                PickSubjectParsedT,
+                self.pick_subject_chain.predict_and_parse(
+                    num=self.num_candidates,
+                    category=themed_category,
+                    seen=self.history,
+                ),
+            )
         return random.choice(candidates)
 
     def process_turn(self, question: str) -> TurnSummaryT:
