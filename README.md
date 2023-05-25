@@ -1,4 +1,4 @@
-# twenty-questions-bot
+# 🤖 twenty-questions-bot
 Langchain chatbot that plays the "20 Questions" game
 
 ## Installation
@@ -28,7 +28,7 @@ This will start the Gradio server, open the url it gives you in a web browser.
 
 ### Docker
 
-There is also an image published to Docker Hub, which runs a web server with a couple more features. This is mostly intended for hosting twenty-questions-bot on the internet, but is also handy way to run locally. 
+There is also an image published to Docker Hub, which runs a web server with a couple more features. This is mostly intended for hosting twenty-questions-bot on the internet, but is also a handy way to run locally. 
 
 ```sh
 docker run \
