@@ -49,8 +49,3 @@ Subject: the Beatles band
 Question: is it radio?
 Invalid question, please try again.
 (Because it is not applicable to the subject.)
-
-Subject: the Beatles band
-Question: is it powered by electricity?
-Sometimes
-👍 true I guess!

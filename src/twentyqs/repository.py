@@ -179,7 +179,10 @@ class Repository:
         query = (
             session.query(GameSession.subject)
             .join(User)
-            .filter(User.username == username)
+            .filter(
+                User.username == username,
+                GameSession.finished_at.isnot(None),  # type: ignore
+            )
         )
         return [subject for (subject,) in query.all()]
 
