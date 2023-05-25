@@ -16,9 +16,20 @@ branch_labels = None
 depends_on = None
 
 
+def column_exists(table_name, column_name):
+    bind = op.get_context().bind
+    insp = sa.inspect(bind)
+    columns = insp.get_columns(table_name)
+    return any(c["name"] == column_name for c in columns)
+
+
 def upgrade() -> None:
-    op.add_column("turn", sa.Column("questions_asked", sa.Integer(), nullable=True))
-    op.add_column("turn", sa.Column("questions_remaining", sa.Integer(), nullable=True))
+    if not column_exists("turn", "questions_asked"):
+        op.add_column("turn", sa.Column("questions_asked", sa.Integer(), nullable=True))
+    if not column_exists("turn", "questions_remaining"):
+        op.add_column(
+            "turn", sa.Column("questions_remaining", sa.Integer(), nullable=True)
+        )
     op.execute(
         """
         UPDATE turn

@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import gradio as gr  # type: ignore
+from alembic.config import Config
+from alembic import command
 from starlette.applications import Starlette
 from starlette.routing import Route
 from starlette.templating import Jinja2Templates
@@ -19,7 +21,7 @@ from .admin import (
 )
 from .auth import AdminAuth
 from .config import settings
-from .repository import Repository, safe_migrate
+from .repository import Repository
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates" / "twentyqs")
 
@@ -31,7 +33,9 @@ logging.basicConfig(level=logging.getLevelName(settings.log_level))
 async def lifespan(app: Starlette):
     if settings.migrate_db:
         # fly.io attaches volumes too late to use `deploy` command to run migrations
-        safe_migrate(settings.alembic_config)
+        alembic_cfg = Config(settings.alembic_config)
+        alembic_cfg.attributes["configure_logger"] = False
+        command.upgrade(alembic_cfg, "head")
 
     db = Repository(db_path=settings.db_path)
     db.init_db(drop=False)

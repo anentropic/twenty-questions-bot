@@ -59,19 +59,22 @@ ADMIN_PASSWORD=****** poetry run uvicorn server.app:app
 
 ### TODO
 
-- https://python.langchain.com/en/latest/modules/models/llms/examples/llm_caching.html
-- make prompts more robust
+- make prompts more robust... key problems currently are:
+  - yes/no question validator is prone to false negatives (better than the opposite, but annoying)
+  - when generating a list of subjects to choose from (random choice from generated list happens in Python) we have to add a list of previously-chosen subjects to the prompt, otherwise it tends to generate the same choices every time
+  - so if you play lots of games the subject history would eventually overflow the prompt
+  - this list is generated per-user which mitigates slightly, as it takes longer to go wrong
+  - but this list of "subjects not to choose" inadvertently acts as a list of examples, so it starts to influence the generated subjects in negative ways e.g. if it previously generated "The Mona Lisa" (a good choice) it may later riff on that and generate "The Mona Lisa's eyes" (an awkward, over-specific choice)
+  - it might be better to do it iteratively
+  - https://twitter.com/altryne/status/1661236951629066241?s=20 suggests a 'base model' like text-davinci-003	may do better than a chat model for task of completing lists of examples
 - add self-reflection and lookup for post-2021 facts
-- If you play lots of games the subject history will eventually overflow the prompt. Also the model tends to pick same subjects (hence need for history)... might be better to pre-gen an extensive dictionary of subjects by whatever means
-  - additionally, the list of 
 - "give me a clue" option on the last question? (in case the LLM chose something ambiguous and is being picky)
 - feedback loop: rating system for LLM responses which lead to bad games, can form test data for future improvement
   - maybe via: https://gradio.app/docs/#flagging
 - https://promptlayer.com/ logging
-  - https://api.openai.com/dashboard/billing/usage can be accessed via HTTP basic auth using username + API key
-  - see also https://api.openai.com/dashboard/billing/credit_grants 😞 "must be made with a session key"
-  - OpenAI billing is aligned to month start
+- maybe a quota system would allow an open public demo user
 - try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
   - https://github.com/kagisearch/pyllms
   - https://huggingface.co/liujch1998/vera might be handy, it did well at recognising yes/no questions when I tried it (it is a 4.7B param T5 model)
+  - in practice it's probably more expensive to self-host one of those than just use OpenAI API
 
