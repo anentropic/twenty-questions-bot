@@ -256,7 +256,12 @@ class ViewModel:
             )
             new_game = gr.Button("New game", visible=False)
 
-            # State obj doesn't have change events, so we use a hidden Textbox
+            gr.HTML(
+                '<a href="https://github.com/anentropic/twenty-questions-bot">https://github.com/anentropic/twenty-questions-bot</a>'
+            )
+
+            # we can't chain .then from the load event, and State obj doesn't have
+            # change events, so we use a hidden Textbox as a state substitute
             loaded_sentinel = gr.Textbox("", visible=False)
             loaded_sentinel.change(self.intro, None, [question_input, chatbot]).success(
                 self.start_game, [chatbot], [question_input, chatbot]
@@ -277,8 +282,6 @@ class ViewModel:
             new_game.click(self.on_new_game_click, None, [new_game]).success(
                 self.intro, None, [question_input, chatbot]
             ).success(self.start_game, [chatbot], [question_input, chatbot])
-
-        # view.queue()
 
         view.auth = auth_callback
         view.auth_message = None
