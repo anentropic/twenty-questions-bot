@@ -1,8 +1,7 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, event, pool
 
 from alembic import context
 
@@ -77,6 +76,23 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
+    """
+    See:
+    https://github.com/sqlalchemy/alembic/discussions/1255
+    https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#pysqlite-serializable
+    """
+
+    @event.listens_for(connectable, "connect")
+    def do_connect(dbapi_connection, connection_record):
+        # disable pysqlite's emitting of the BEGIN statement entirely.
+        # also stops it from emitting COMMIT before any DDL.
+        dbapi_connection.isolation_level = None
+
+    @event.listens_for(connectable, "begin")
+    def do_begin(conn):
+        # emit our own BEGIN
+        conn.exec_driver_sql("BEGIN")
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

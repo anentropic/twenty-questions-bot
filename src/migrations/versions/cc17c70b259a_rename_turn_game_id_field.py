@@ -16,14 +16,14 @@ depends_on = None
 
 
 def upgrade() -> None:
+    op.drop_index("turn_game_id", "turn")
     with op.batch_alter_table("turn") as batch_op:
-        batch_op.drop_index("turn_game_id")
         batch_op.alter_column("game_id", new_column_name="gamesession_id")
-        batch_op.create_index("turn_gamesession_id", ["gamesession_id"])
+    op.create_index("turn_gamesession_id", "turn", ["gamesession_id"])
 
 
 def downgrade() -> None:
+    op.drop_index("turn_gamesession_id", "turn")
     with op.batch_alter_table("turn") as batch_op:
-        batch_op.drop_index("turn_gamesession_id")
         batch_op.alter_column("gamesession_id", new_column_name="game_id")
-        batch_op.create_index("turn_game_id", ["game_id"])
+    op.create_index("turn_game_id", "turn", ["game_id"])

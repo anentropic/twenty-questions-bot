@@ -18,17 +18,18 @@ depends_on = None
 
 
 def upgrade() -> None:
+    op.add_column(
+        "user",
+        sa.Column(
+            "name",
+            sqlmodel.sql.sqltypes.AutoString(),
+            nullable=True,
+        ),
+    )
+    op.execute(
+        "UPDATE user SET name = upper(substr( username, 1, 1 )) || substr( username, 2 )"
+    )
     with op.batch_alter_table("user") as batch_op:
-        batch_op.add_column(
-            sa.Column(
-                "name",
-                sqlmodel.sql.sqltypes.AutoString(),
-                nullable=True,
-            ),
-        )
-        batch_op.execute(
-            "UPDATE user SET name = upper(substr( username, 1, 1 )) || substr( username, 2 )"
-        )
         batch_op.alter_column(
             "name",
             nullable=False,
@@ -36,5 +37,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    with op.batch_alter_table("user") as batch_op:
-        batch_op.drop_column("name")
+    op.drop_column("user", "name")
