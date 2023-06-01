@@ -1,14 +1,21 @@
+import hashlib
 from pathlib import Path
 from typing import Type
 
+from datasets import Dataset
 from markupsafe import Markup
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter
-from sqladmin import Admin as BaseAdmin, BaseView, ModelView as BaseModelView, expose
+from sqladmin import (
+    Admin as _Admin,
+    BaseView as _BaseView,
+    ModelView as _ModelView,
+    expose,
+)
 from sqladmin.authentication import login_required
 from starlette.requests import Request
-from starlette.responses import FileResponse, Response
+from starlette.responses import FileResponse, Response, RedirectResponse
 
 from twentyqs.repository import GameSession, Turn, TurnLog, User
 from twentyqs.serde import serialize
@@ -39,7 +46,7 @@ def obj_list_detail_formatter(model, attribute):
     return [obj_formatter(obj) for obj in val]
 
 
-class Admin(BaseAdmin):
+class Admin(_Admin):
     db: Repository
 
     def __init__(self, *args, **kwargs) -> None:
@@ -49,6 +56,10 @@ class Admin(BaseAdmin):
     def add_model_view(self, view: Type["ModelView"]) -> None:  # type: ignore[override]
         view.db = self.db
         return super().add_model_view(view)
+
+    def add_base_view(self, view: Type["BaseView"]) -> None:  # type: ignore[override]
+        view.db = self.db
+        return super().add_base_view(view)
 
     @login_required
     async def index(self, request: Request) -> Response:
@@ -64,7 +75,11 @@ class Admin(BaseAdmin):
         )
 
 
-class ModelView(BaseModelView):
+class BaseView(_BaseView):
+    db: Repository
+
+
+class ModelView(_ModelView):
     db: Repository
     pygments_css = PYGMENTS_CSS
     details_template = "details_with_pygments.html"
@@ -84,10 +99,6 @@ class UserAdmin(ModelView, model=User):
         "games",
     ]
     details_template = "user_details.html"
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.db = Repository(engine=self.engine)
 
     def user_stats(self, user):
         stats = self.db.get_user_stats(user.username)
@@ -166,3 +177,37 @@ class DbFileView(BaseView):
             media_type="application/octet-stream",
             filename=path.name,
         )
+
+
+def shortcode(s: str, length: int = 8) -> str:
+    return hashlib.shake_128(s.encode("utf-8")).hexdigest(length // 2)
+
+
+class HfDatasetView(BaseView):
+    name = "Push dataset to HF"
+    icon = "fa-table"
+
+    @expose("/db/init-push-to-hf", identity="init-push-to-hf", methods=["GET"])
+    def confirm(self, request):
+        return self.templates.TemplateResponse(
+            "push_to_hf.html",
+            {
+                "request": request,
+                "repo_id": settings.hf_repo_id,
+            },
+        )
+
+    @expose("/db/push-to-hf", identity="do-push-to-hf", methods=["POST"])
+    async def push(self, request):
+        async with request.form() as form:
+            repo_id = form["repo_id"]
+        turns = self.db.review_games()
+        dataset = Dataset.from_list(
+            [turn.dict() for turn in turns],
+            split=shortcode(settings.db_path),
+        )
+        dataset.push_to_hub(
+            repo_id=repo_id,
+            token=settings.hf_api_token,
+        )
+        return RedirectResponse(url=request.url_for("admin:index"), status_code=303)

@@ -22,6 +22,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         libsqlite3-dev \
+        liblzma5 \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /root/.cache \
@@ -104,6 +105,7 @@ COPY --from=python-base /usr/lib/${CHIPSET_ARCH}/libffi* /usr/lib/${CHIPSET_ARCH
 COPY --from=python-base /lib/${CHIPSET_ARCH}/libexpat* /lib/${CHIPSET_ARCH}/
 # required by twentyqs
 COPY --from=python-base /usr/lib/${CHIPSET_ARCH}/libsqlite3.so.0 /lib/${CHIPSET_ARCH}/
+COPY --from=python-base /lib/${CHIPSET_ARCH}/liblzma.so.5 /lib/${CHIPSET_ARCH}/
 
 ## -------------------------- add application ---------------------------------------- ##
 COPY --from=build-image --chown=65532:65532 /workspace/app/.venv  /workspace/app/.venv

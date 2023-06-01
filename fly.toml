@@ -29,3 +29,10 @@ primary_region = "lhr"
   DB_PATH = "/data/twentyqs.db"
   LOG_LEVEL = "INFO"
   VERBOSE_LANGCHAIN = "true"
+  HF_REPO_ID = "anentropic/twenty-questions-bot"
+
+# secrets:
+# - ADMIN_PASSWORD
+# - HF_API_TOKEN
+# - OPENAI_API_KEY
+# - SECRET_KEY

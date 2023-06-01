@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import gradio as gr  # type: ignore
+import gradio as gr
 from alembic.config import Config
 from alembic import command
 from starlette.applications import Starlette
@@ -14,6 +14,7 @@ from twentyqs.runner import get_view
 from .admin import (
     Admin,
     DbFileView,
+    HfDatasetView,
     GameSessionAdmin,
     TurnAdmin,
     TurnLogAdmin,
@@ -66,6 +67,7 @@ async def lifespan(app: Starlette):
     admin.add_view(TurnAdmin)
     admin.add_view(TurnLogAdmin)
     admin.add_view(DbFileView)
+    admin.add_view(HfDatasetView)
 
     yield
 

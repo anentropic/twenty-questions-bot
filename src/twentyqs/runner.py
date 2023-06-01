@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Callable
 
-import gradio as gr  # type: ignore
+import gradio as gr
 from langchain import OpenAI
 from langchain.callbacks import get_openai_callback
 from langchain.callbacks.openai_info import OpenAICallbackHandler

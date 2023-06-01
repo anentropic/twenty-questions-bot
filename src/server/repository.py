@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Repository(BaseRepository):
     def init_db(self, drop=False):
+        # TODO: this could be an alembic migration now
         super().init_db(drop=drop)
         with Session(self.engine) as session:
             session.exec(

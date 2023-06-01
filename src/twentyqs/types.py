@@ -99,3 +99,15 @@ class UserMeta(BaseModel):
     username: str
     name: str
     stats: UserStats
+
+
+class TurnReview(BaseModel):
+    gamesession_id: int
+    valid_q_n: int
+    turn_id: int
+    subject: str
+    question: str
+    is_valid: bool
+    is_valid_reason: str | None
+    answer: str | None
+    is_deciding_q: bool | None

@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block head %}
+  {{ super() }}
+  <style>
+  {{ pygments_css }}
+  </style>
+{% endblock %}
+{% block content %}
+<div class="col-12">
+  <div class="card">
+    <div class="card-body border-bottom py-3">
+      <h3 class="card-title">Push games dataset to HuggingFace</h3>
+      <form action="{{ url_for('admin:do-push-to-hf') }}" method="POST">
+        <fieldset class="form-fieldset">
+          <div class="mb-3 form-group row">
+            <input type="text" name="repo_id" class="w-25 form-control" placeholder="HF Dataset Repo ID" value="{{ repo_id }}" required>
+          </div>
+        </fieldset>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="btn-group flex-wrap" data-toggle="buttons">
+              <input type="submit" class="btn btn-primary" value="Push to 🤗">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{{ super() }}
+{% endblock %}

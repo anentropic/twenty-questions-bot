@@ -4,7 +4,7 @@ from functools import wraps
 from threading import Lock
 from typing import ParamSpec, Protocol, TypeVar, cast
 
-import gradio as gr  # type: ignore
+import gradio as gr
 
 from twentyqs.controller import (
     GameController,
@@ -250,11 +250,12 @@ class ViewModel:
         with gr.Blocks() as view:
             gr.HTML('<h1 style="font-family: monospace">🤖 Twenty Questions Bot</h1>')
 
-            chatbot = gr.Chatbot()
-            question_input = gr.Textbox(
-                label="Ask a yes/no question:", interactive=False, visible=False
-            )
-            new_game = gr.Button("New game", visible=False)
+            with gr.Row(visible=True):
+                chatbot = gr.Chatbot()
+                question_input = gr.Textbox(
+                    label="Ask a yes/no question:", interactive=False, visible=False
+                )
+                new_game = gr.Button("New game", visible=False)
 
             gr.HTML(
                 '<a href="https://github.com/anentropic/twenty-questions-bot">https://github.com/anentropic/twenty-questions-bot</a>'
@@ -262,6 +263,7 @@ class ViewModel:
 
             # we can't chain .then from the load event, and State obj doesn't have
             # change events, so we use a hidden Textbox as a state substitute
+            # TODO: fixed in https://github.com/gradio-app/gradio/pull/4304
             loaded_sentinel = gr.Textbox("", visible=False)
             loaded_sentinel.change(self.intro, None, [question_input, chatbot]).success(
                 self.start_game, [chatbot], [question_input, chatbot]

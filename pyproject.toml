@@ -24,6 +24,7 @@ sqlalchemy-get-or-create = "^0.1.5"
 alembic = "^1.11.1"
 pygments = "^2.15.1"
 starlette = "^0.27.0"
+datasets = "^2.12.0"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "*"
@@ -37,6 +38,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "gradio.*",
+    "datasets.*",
+    "sqlalchemy_get_or_create.*",
+]
+ignore_missing_imports = true
 
 [tool.ruff]
 ignore = [

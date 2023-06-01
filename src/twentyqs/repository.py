@@ -7,7 +7,8 @@ from typing import Sequence, Optional, List
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncEngine
-from sqlalchemy_get_or_create import get_or_create  # type: ignore
+from sqlalchemy.orm import aliased
+from sqlalchemy_get_or_create import get_or_create
 from sqlmodel import (
     Field,
     Relationship,
@@ -18,10 +19,11 @@ from sqlmodel import (
     JSON,
     Column,
     func,
+    and_,
 )
 
 from twentyqs.serde import serialize, deserialize
-from twentyqs.types import JsonT, ServerStats, UserStats
+from twentyqs.types import JsonT, LogKey, ServerStats, TurnReview, UserStats
 
 
 class NotFound(Exception):
@@ -95,6 +97,52 @@ def with_session(f):
             return f(self, session, *args, **kwargs)
 
     return wrapper
+
+
+_validate_alias = aliased(TurnLog)
+_answer_alias = aliased(TurnLog)
+_deciding_alias = aliased(TurnLog)
+
+TURN_REVIEW_Q = (
+    select(
+        GameSession.id.label("gamesession_id"),  # type: ignore
+        Turn.questions_asked.label("valid_q_n"),  # type: ignore
+        Turn.id.label("turn_id"),  # type: ignore
+        GameSession.subject,
+        Turn.question,
+        func.json_extract(_validate_alias.value, "$.is_valid").label("is_valid"),
+        func.json_extract(_validate_alias.value, "$.reason").label("is_valid_reason"),
+        func.json_extract(_answer_alias.value, "$.answer").label("answer"),
+        func.json_extract(_deciding_alias.value, "$.is_deciding_q").label(
+            "is_deciding_q"
+        ),
+    )
+    .select_from(GameSession)
+    .join(Turn, Turn.gamesession_id == GameSession.id)
+    .outerjoin(
+        _validate_alias,
+        and_(
+            Turn.id == _validate_alias.turn_id,
+            _validate_alias.key == LogKey.VALIDATE_QUESTION.value,
+        ),
+    )
+    .outerjoin(
+        _answer_alias,
+        and_(
+            Turn.id == _answer_alias.turn_id,
+            _answer_alias.key == LogKey.ANSWER_QUESTION.value,
+        ),
+    )
+    .outerjoin(
+        _deciding_alias,
+        and_(
+            Turn.id == _deciding_alias.turn_id,
+            _deciding_alias.key == LogKey.IS_DECIDING_QUESTION.value,
+        ),
+    )
+)
+# TODO: if we ditch sqlmodel and upgrade to sqla2 we can directly map to TurnReview
+# https://docs.sqlalchemy.org/en/20/orm/nonstandard_mappings.html#mapping-a-class-against-arbitrary-subqueries
 
 
 class Repository:
@@ -388,3 +436,24 @@ class Repository:
             avg_invalid_questions_per_game=avg_invalid_questions_per_game,
             avg_questions_to_win=avg_questions_to_win,
         )
+
+    @with_session
+    def review_game(self, session: Session, gamesession_id: int) -> list[TurnReview]:
+        query = TURN_REVIEW_Q.filter(
+            Turn.finished_at.isnot(None),  # type: ignore
+            Turn.gamesession_id == gamesession_id,
+        ).order_by(
+            Turn.id.asc()  # type: ignore
+        )
+        result = session.execute(query).fetchall()
+        return [TurnReview.parse_obj(row) for row in result]
+
+    @with_session
+    def review_games(self, session: Session) -> list[TurnReview]:
+        query = TURN_REVIEW_Q.filter(
+            Turn.finished_at.isnot(None)  # type: ignore
+        ).order_by(
+            Turn.id.asc()  # type: ignore
+        )
+        result = session.execute(query).fetchall()
+        return [TurnReview.parse_obj(row) for row in result]
