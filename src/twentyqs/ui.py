@@ -250,7 +250,7 @@ class ViewModel:
         with gr.Blocks() as view:
             gr.HTML('<h1 style="font-family: monospace">🤖 Twenty Questions Bot</h1>')
 
-            with gr.Row(visible=True):
+            with gr.Column(visible=True):
                 chatbot = gr.Chatbot()
                 question_input = gr.Textbox(
                     label="Ask a yes/no question:", interactive=False, visible=False

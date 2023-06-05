@@ -45,6 +45,8 @@ CHECK_ASSERTIONS_WIKI_PROMPT = WIKI_PROMPT = PromptTemplate.from_examples(
 
 class LLMCheckerWithReActChain(Chain):
     """
+    WIP....
+
     Chain for question-answering with self-verification.
 
     Example:

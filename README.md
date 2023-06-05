@@ -77,7 +77,7 @@ ADMIN_PASSWORD=****** poetry run uvicorn server.app:app
   - try other LLM backends, e.g. are the OSS ones good enough to play it? or local LLaMA?
     - https://github.com/kagisearch/pyllms
     - https://huggingface.co/liujch1998/vera might be handy, it did well at recognising yes/no questions when I tried it (it is a 4.7B param T5 model)
-    - in practice it's probably more expensive to self-host one of those than just use OpenAI API
+    - is it more expensive to self-host one of those than just use OpenAI API
 - UI:
   - Gradio was a quick way to get up and running but it'd be better to have stateless backend + custom frontend
     - so that games can be resumed e.g. in case of server error, or continued across a deployment
